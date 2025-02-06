@@ -30,8 +30,3 @@ class RungeKutta4(Integrator):
         intg = RungeKutta3(self.dt, self.f)
         x3 = intg.step(t, x, u) # RK3 step
         return x + self.dt * (self.f(t, x, u) + self.f(t+self.dt, x3, u))
-
-
-
-        
-
