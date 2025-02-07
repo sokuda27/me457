@@ -64,7 +64,7 @@ plt.title('heun')
 plt.plot(t_history_heun, x_history_heun)
 plt.show()
 
-# Range Kutta 4 Integrator
+# Runge Kutta 4 Integrator
 t = 0; x = np.array([0, 1]); u = 0
 integrator_rk4 = intg.RK4(dt, f)
 t_history_rk4 = [0]
