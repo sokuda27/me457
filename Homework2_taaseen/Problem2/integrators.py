@@ -36,3 +36,11 @@ class RK4(Integrator):
         int3 = RK3(self.dt, self.f)
         x3 = int3.step(t, x, u)
         return x + (self.dt/6) * (self.f(t, x, u) + 2*self.f(t+self.dt/2, xE, u) + 2*self.f(t+self.dt/2, xH, u) + self.f(t+self.dt, x3, u))
+
+# class RK4(Integrator):
+#     def step(self, t, x, u):
+#         k1 = self.f(t, x, u)
+#         k2 = self.f(t + self.dt/2, x + 0.5 * self.dt * k1, u)
+#         k3 = self.f(t + self.dt/2, x + 0.5 * self.dt * k2, u)
+#         k4 = self.f(t + self.dt, x + self.dt * k3, u)
+#         return x + (self.dt/6) * (k1 + 2*k2 + 2*k3 + k4)
