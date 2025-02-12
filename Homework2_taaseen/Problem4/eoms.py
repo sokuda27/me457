@@ -1,3 +1,4 @@
+# In[ ]:
 # Imports
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,9 +20,9 @@ f_y = 10 # Force in y
 f_z = 10 # Force in z
 
 ## Moments
-l = 10   # Moment about x
-m = 10   # Moment about y
-n = 10   # Moment about z
+l = 0.1  # Moment about x
+m = 0.1  # Moment about y
+n = 0.1  # Moment about z
 
 ## Input Arrays
 f_b = np.array([f_x, f_y, f_z]) # Force Array
@@ -45,15 +46,23 @@ J = np.array([[J_x, -J_xy, -J_xz],  # Inertia Matrix
 p_n = 0
 p_e = 0
 p_d = 0
+A1 = np.array([p_n, p_e, p_d])
 ## Rotational Kinematics State
 psi = 0
 theta = 0
 phi = 0
+A2 = np.array([psi, theta, phi])
 ## Translational Dynamics State
 u = 0
 v = 0
 w = 0
+A3 = np.array([u, v, w])
 ## Rotational Dynamics State
 p = 0
 q = 0
 r = 0
+A4 = np.array([p, q, r])
+AA = np.concatenate((A1, A2, A3, A4))
+print(AA)
+
+# Implementation
