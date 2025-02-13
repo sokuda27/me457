@@ -54,6 +54,8 @@ w = np.array([p, q, r]) # Angular Velocity Vector
 w_bb = np.array([[0, -r, q],
                  [r, 0, -p],
                  [-q, p, 0]])
+
+# Solve EOMs
 V_solution = (1/M**2)*np.dot(-w_bb, V) + f_b
 w_solution = np.dot(np.linalg.inv(J), (m_b-np.dot(w_bb,np.dot(J,w))))
 
