@@ -21,11 +21,11 @@ class Heun(Integrator):
     
 class RungeKutta4(Integrator):
     def step(self, t, x, u):
-        k1 = self.dt * self.f(t, x, u) # first predictor step
-        k2 = self.dt * self.f(t + self.dt/2, x + k1/2, u)
-        k3 = self.dt * self.f(t + self.dt/2, x + k2/2, u)
-        k4 = self.dt * self.f(t + self.dt, x + k3, u)
-        return x + k1/6 + k2/3 + k3/3 + k4/6
+        k1 = self.f(t, x, u) # first predictor step
+        k2 = self.f(t + self.dt/2, x + self.dt*k1/2, u)
+        k3 = self.f(t + self.dt/2, x + self.dt*k2/2, u)
+        k4 = self.f(t + self.dt, x + self.dt*k3, u)
+        return x + self.dt*(k1/6 + k2/3 + k3/3 + k4/6)
 
 
 

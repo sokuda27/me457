@@ -23,29 +23,36 @@ def analytical(y, t):
     return [dy1dt, dy2dt]
         
 t = 0; x = np.array([0, 1]); u = 0
-dt = 0.1; n = 50
+dt = 0.1; n = 10
 
 # integrator = intg.Euler(dt, f)
 integrator = intg.Heun(dt, f)
-integrator1 = intg.RungeKutta4(dt, f)
+# integrator = intg.RungeKutta4(dt, f)
 
 t_history = [0] 
 x_history = [x]
-x_history1 = [x]
+# x_history1 = [x]
 for i in range(n):
     
     x = integrator.step(t, x, u)
-    x1 = integrator1.step(t, x, u)
+    # x1 = integrator1.step(t, x, u)
     t = (i+1) * dt
 
     t_history.append(t)
     x_history.append(x)
-    x_history1.append(x1)
+    # x_history1.append(x1)
 
-t_analytic = np.linspace(0, n*dt, n)
+t_analytic = np.linspace(0, n*dt, n+1)
 y0 = [0, 1]
 # int_analytical = odeint(analytical, y0, t_analytic)
-int_analytical = (1/0.92157)*np.sin(0.992157*t_analytic)*np.exp(-0.125*t_analytic)
+# int_analytical = (1/0.92157)*np.sin(0.992157*t_analytic)*np.exp(-0.125*t_analytic)
+
+z = 0.25/(2)
+sigma = z
+wd = np.sqrt(1 - z**2)
+A = y0[0]
+B = (y0[1] + sigma*y0[0])/wd
+x_exact = np.exp(-sigma*t_analytic)*(A*np.cos(wd*t_analytic) + B*np.sin(wd*t_analytic))
 
 intg.__doc__
 # plt.figure()
@@ -54,6 +61,7 @@ intg.__doc__
 # plt.show()
 
 xhist = np.array(x_history)
+err = x_exact-xhist[:,0]
 
 # plt.figure()
 # plt.plot(t_history, x_history)
@@ -61,11 +69,17 @@ xhist = np.array(x_history)
 # plt.legend(["heun x", "heun x_dot", "analytical x", "analytical x_dot"])
 # plt.show()
 
-# plt.figure()
-# plt.plot(t_history, xhist[:,0])
-# plt.plot(t_analytic, int_analytical)
-# plt.legend(["heun x","analytical x"])
-# plt.show()
+plt.figure()
+plt.plot(t_history, xhist[:,0])
+plt.plot(t_history, x_exact)
+# plt.plot(t_history, err)
+plt.legend(["rk4 x","analytical x"])
+plt.show()
+
+plt.figure()
+plt.plot(t_history, err)
+plt.legend(["err x"])
+plt.show()
 
 # plt.figure()
 # plt.plot(t_history, xhist[:,1])
@@ -73,7 +87,7 @@ xhist = np.array(x_history)
 # plt.legend(["heun x_dot","analytical x_dot"])
 # plt.show()
 
-xhist1 = np.array(x_history1)
+# xhist1 = np.array(x_history1)
 
 # plt.figure()
 # plt.plot(t_history, x_history1)
@@ -81,11 +95,11 @@ xhist1 = np.array(x_history1)
 # plt.legend(["rk4 x", "rk4 x_dot", "analytical x", "analytical x_dot"])
 # plt.show()
 
-plt.figure()
-plt.plot(t_history, xhist1[:,0])
-plt.plot(t_analytic, int_analytical)
-plt.legend(["rk4 x", "analytical x"])
-plt.show()
+# plt.figure()
+# plt.plot(t_history, xhist1[:,0])
+# plt.plot(t_analytic, int_analytical)
+# plt.legend(["rk4 x", "analytical x"])
+# plt.show()
 
 # plt.figure()
 # plt.plot(t_history, xhist1[:,1])
