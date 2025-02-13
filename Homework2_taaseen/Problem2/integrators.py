@@ -47,8 +47,8 @@ class RK4_V2(Integrator): #(ChatGPT)
 
 class RK4_V3(Integrator): #(saira)
     def step(self, t, x, u):
-        k1 = self.f(t, x, u)
-        k2 = self.f(t+self.dt/2, x+k1/2, u)
-        k3 = self.f(t+self.dt/2, x+k2/2, u)
-        k4 = self.f(t+self.dt, x+k3, u)
+        k1 = self.dt*self.f(t, x, u)
+        k2 = self.dt*self.f(t+self.dt/2, x+k1/2, u)
+        k3 = self.dt*self.f(t+self.dt/2, x+k2/2, u)
+        k4 = self.dt*self.f(t+self.dt, x+k3, u)
         return x + (1/6) * (k1 + 2*k2 + 2*k3 + k4)
