@@ -25,7 +25,7 @@ def f(t, x, u):
 # Time Stepping Parameters
 # dt = 0.1; n = 100
 # dt = 0.5; n = 100
-dt = 0.1; n = 100
+dt = 0.05; n = 100
 
 # Euler Integrator        
 t = 0; x_euler = np.array([0, 1]); u = 0
@@ -81,5 +81,5 @@ plt.figure()
 plt.title('Heun VS RK4')
 plt.plot(t_history_heun, x_history_heun, label='Heun')
 plt.plot(t_history_rk4, x_history_rk4, label = 'RK4')
-plt.legend(["euler x", "euler x_dot", "rk4 x", "rk4 x_dot"])
+plt.legend(["heun x", "heun x_dot", "rk4 x", "rk4 x_dot"])
 plt.show()
