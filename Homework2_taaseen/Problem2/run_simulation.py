@@ -66,7 +66,7 @@ plt.show()
 
 # Runge Kutta 4 Integrator
 t = 0; x_RK4 = np.array([0, 1]); u = 0
-integrator_rk4 = intg.RK4_V3(dt, f)
+integrator_rk4 = intg.RK4(dt, f)
 t_history_rk4 = [0]
 x_history_rk4 = [x_RK4]
 for i in range(n):
