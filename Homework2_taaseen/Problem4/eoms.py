@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 # taken from Small Unmanned Aircraft: Theory and Practice Supplement #
 # by Beard and McLain.                                               #
 #                                                                    #
+# Received help and adapted code from Saira Billah.                  #
 ######################################################################
 
 # Inputs
@@ -42,27 +43,22 @@ J = np.array([[J_x, -J_xy, -J_xz],  # Inertia Matrix
               [-J_xz, -J_yz, J_z]])
 
 # Initial Conditions
-## Translational Kinematics State
-p_n = 0
-p_e = 0
-p_d = 0
-A1 = np.array([p_n, p_e, p_d])
-## Rotational Kinematics State
-psi = 0
-theta = 0
-phi = 0
-A2 = np.array([psi, theta, phi])
-## Translational Dynamics State
-u = 0
-v = 0
-w = 0
-A3 = np.array([u, v, w])
-## Rotational Dynamics State
-p = 0
-q = 0
-r = 0
-A4 = np.array([p, q, r])
-AA = np.concatenate((A1, A2, A3, A4))
-print(AA)
+u = 1
+v = 1
+w = 1
+p = 1
+q = 1
+r = 1
+V = np.array([u, v, w]) # Linear Velocity Vector
+w = np.array([p, q, r]) # Angular Velocity Vector
+w_bb = np.array([[0, -r, q],
+                 [r, 0, -p],
+                 [-q, p, 0]])
+V_solution = (1/M**2)*np.dot(-w_bb, V) + f_b
+w_solution = np.dot(np.linalg.inv(J), (m_b-np.dot(w_bb,np.dot(J,w))))
 
-# Implementation
+# Print results
+print('udot, vdot, wdot:')
+print(V_solution)
+print('pdot, qdot, rdot')
+print(w_solution)
