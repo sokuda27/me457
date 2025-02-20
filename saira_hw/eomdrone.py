@@ -21,7 +21,7 @@ def f(t, x, u_i):
     fx, fy, fz, l, m, n = u_i #input variables
     
     p_ndot = (np.cos(theta)*np.cos(psi))*u + (np.sin(phi)*np.sin(theta)*np.cos(psi) - np.cos(phi)*np.sin(psi))*v + (np.cos(phi)*np.sin(theta)*np.cos(psi) + np.sin(phi)*np.sin(psi))*w
-    p_edot = (np.cos(theta)*np.sin(psi))*u + (np.sin(phi)*np.sin(theta)*np.sin(psi) + np.cos(phi)*np.cos(psi))*v + (np.cos(phi)*np.sin(theta)*np.sin(psi) - np.sin(phi)*np.cos(psi))*w
+    p_edot = (np.cos(theta)*np.sin(psi))*u + (np.sin(phi)*np.sin(theta)*np.sin(psi) + np.cos(phi)*np.cos(psi))*v + (np.cos(phi)*np.sin(theta)*np.sin(psi) - np.sin(phi)*np.cos(psi))*w     
     p_ddot = (-np.sin(theta))*u + (np.sin(phi)*np.cos(theta))*v + (np.cos(phi)*np.cos(theta))*w
     udot = r*v - q*w + (1/mass)*fx 
     vdot = p*w - r*u + (1/mass)*fy 
@@ -36,13 +36,13 @@ def f(t, x, u_i):
     return np.array([p_ndot, p_edot, p_ddot,udot, vdot, wdot, phidot, thetadot, psidot, pdot, qdot, rdot])
 
 # State Initial Conditions                     
-p_n0 = 0; p_e0 = 0; p_d0 = 0
-u_0 = 0; v_0 = 0; w_0 = 0
+p_n0 = 0; p_e0 = 0; p_d0 = 100
+u_0 = 10; v_0 = 0; w_0 = 0
 phi_0 = 0; theta_0 = 0; psi_0 = 0
 p_0 = 0; q_0 = 0; r_0 = 0
 
 # Input Initial Conditions (forces and moments)
-Fx_0 = 0; Fy_0 = 0; Fz_0 = 9.8;
+Fx_0 = 1; Fy_0 = 0; Fz_0 = 9.8;
 lx_0 = 0; my_0 = 0; nz_0 = 0
 
 #moments of inertia
@@ -64,7 +64,7 @@ T8 = Jx/T
 t = 0
 x = np.array([p_n0, p_e0, p_d0, u_0, v_0, w_0, phi_0, theta_0, psi_0, p_0, q_0, r_0])
 u_i = np.array([Fx_0, Fy_0, Fz_0, lx_0, my_0, nz_0])
-dt = 0.1; n = 100
+dt = .1; n = 100
 
 
 integrator = intg.RungeKutta4(dt, f)
@@ -77,14 +77,23 @@ for i in range(n):
     t = (i+1) * dt
     t_history.append(t)
     x_history.append(x)
-    
-    
+
+
 intg.__doc__
 plt.figure()
 plt.title('pn')
-p_north = [x_history[0] for arr in x_history]
+p_north = [arr[0] for arr in x_history]
+p_east = [arr[1] for arr in x_history]
+p_down = [arr[2] for arr in x_history]
 plt.plot(t_history, p_north)
 #plt.legend(["pn", "pe", "pd"])
 plt.show()
 
-print(f(t, x, u_i))
+plt.figure()
+ax = plt.axes(projection='3d')
+ax.plot3D(p_north, p_east, p_down)
+ax.set_title('Path of aircraft')
+ax.set_xlabel('north', fontsize=10)
+ax.set_ylabel('east', fontsize=10)
+ax.set_zlabel('down', fontsize=10)
+plt.show()
