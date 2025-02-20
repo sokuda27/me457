@@ -55,7 +55,7 @@ p_0 = 0
 q_0 = 0
 r_0 = 0
 
-x_IC = np.array([p_n_0, p_e_0, p_d_0, phi_0, theta_0, psi_0, u_0, v_0, w_0, p_0, q_0, r_0]) # Initial Conditions Vector
+x_IC = np.array([p_n_0, p_e_0, p_d_0, u_0, v_0, w_0, phi_0, theta_0, psi_0, p_0, q_0, r_0]) # Initial Conditions Vector
 u_IC = np.array([f_x_0, f_y_0, f_z_0, l_0, m_0, n_0])
 
 # Gamma Values
@@ -70,7 +70,7 @@ Gamma7 = ((J_x-J_y)*J_x+J_xz**2)/Gamma
 Gamma8 = J_x/Gamma
 
 def f(t, x, u_i):
-    p_n, p_e, p_d, phi, theta, psi, u, v, w, p, q, r = x
+    p_n, p_e, p_d, u, v, w, phi, theta, psi, p, q, r = x
     f_x, f_y, f_z, l, m, n = u_i
     
     
@@ -104,18 +104,19 @@ for i in range(n):
     t_history.append(t)
     x_history.append(x)
 
-p_n_values = list(map(lambda x: x[0], x_history))
-p_e_values = list(map(lambda x: x[1], x_history))
-p_d_values = list(map(lambda x: x[2], x_history))
-phi_values = list(map(lambda x: x[3], x_history))
-theta_values = list(map(lambda x: x[4], x_history))
-psi_values = list(map(lambda x: x[5], x_history))
-u_values = list(map(lambda x: x[6], x_history))
-v_values = list(map(lambda x: x[7], x_history))
-w_values = list(map(lambda x: x[8], x_history))
-p_values = list(map(lambda x: x[9], x_history))
-q_values = list(map(lambda x: x[10], x_history))
-r_values = list(map(lambda x: x[11], x_history))
+p_n_values = [arr[0] for arr in x_history]
+p_e_values = [arr[1] for arr in x_history]
+p_d_values = [arr[2] for arr in x_history]
+u_values = [arr[3] for arr in x_history]
+v_values = [arr[4] for arr in x_history]
+w_values = [arr[5] for arr in x_history]
+phi_values = [arr[6] for arr in x_history]
+theta_values = [arr[7] for arr in x_history]
+psi_values = [arr[8] for arr in x_history]
+p_values = [arr[9] for arr in x_history]
+q_values = [arr[10] for arr in x_history]
+r_values = [arr[11] for arr in x_history]
+
 
 intg.__doc__
 plt.figure()
