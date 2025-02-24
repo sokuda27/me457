@@ -38,6 +38,12 @@ def f(t, x, u_i):
     p_n, p_e, p_d, u, v, w, phi, theta, psi, p, q, r = x
     l, m, n = u_i
     
+    # State Variable Matrices
+    M_ned = np.array([p_n, p_e, p_d])
+    M_vg = np.array([u, v, w])
+    M_euler = np.array([phi, theta, psi])
+    M_angular = np.array([p, q, r])
+    
     # Body to Aero Frame
     u_r = u - u_w
     v_r = v - v_w
@@ -62,12 +68,37 @@ def f(t, x, u_i):
     C_T = C_T2*J**2+C_T1*J+C_T0
     C_Q = C_Q2*J**2+C_Q1*J+C_Q0
     T_p = rho*(Omega/(2*np.pi))**2*D_prop**4*C_T
+    Q_p = rho*(Omega/(2*np.pi))**2*D_prop**5*C_Q
+    
+    # Control Surface Variables
+    delta_a = p
+    delta_e = -q
+    delta_r = -r
     
     # Force Matrix
-    f = (np.array([-mass*g*np.sin(theta), mass*g*np.cos(theta)*np.sin(phi), mass*g*np.cos(theta)*np.cos(phi)])
-       + ((1/2)*rho*V_a**2*S)*np.array([C_X+C_X_q*c/(2*V_a)*q, C_Y_0+C_Y_beta*beta+C_Y_p*b/(2*V_a*p+C_Y_r*b/(2*V_a)*r), C_Z+C_Z_q*c/(2*V_a)*q])
-       + ((1/2)*rho*V_a**2*S)*np.array([C_X_delta_e*(-q), C_Y_delta_a*p+C_Y_delta_r*(-r), C_Z_delta_e*(-q)])  
-       + np.array([T_p, 0, 0]))
+    force = (np.array([-mass*g*np.sin(theta), 
+                       mass*g*np.cos(theta)*np.sin(phi), 
+                       mass*g*np.cos(theta)*np.cos(phi)])
+       + ((1/2)*rho*V_a**2*S)*np.array([C_X+C_X_q*c/(2*V_a)*q, 
+                                        C_Y_0+C_Y_beta*beta+C_Y_p*b/(2*V_a)*p+C_Y_r*b/(2*V_a)*r, 
+                                        C_Z+C_Z_q*c/(2*V_a)*q])
+       + ((1/2)*rho*V_a**2*S)*np.array([C_X_delta_e*delta_e, 
+                                        C_Y_delta_a*delta_a+C_Y_delta_r*delta_r, 
+                                        C_Z_delta_e*delta_e])
+       + np.array([T_p, 
+                   0, 
+                   0]))
+
+    # Moment Matrix
+    moment = ((1/2)*rho*V_a**2*S*np.array([b*(C_l_0+C_l_beta*beta+C_l_p*b/(2*V_a)*p+C_l_r*b/(2*V_a)*r), 
+                                           c*(C_m_0+C_m_alpha*alpha+C_m_q*c/(2*V_a)*q),
+                                           b*(C_n_0+C_n_beta*beta+C_n_p*b/(2*V_a)*p+C_n_r*b/(2*V_a)*r)])
+            + (1/2)*rho*V_a**2*S*np.array([b*(C_l_delta_a*delta_a+C_l_delta_r*delta_r),
+                                           c*(C_m_delta_e*delta_e),
+                                           b*(C_n_delta_a*delta_a+C_n_delta_r*delta_r)])
+            + np.array([Q_p, 
+                        0, 
+                        0]))
     
     # Rotation Matrices
     pos_rot_matrix = np.array([[np.cos(theta)*np.cos(psi), np.sin(phi)*np.sin(theta)*np.cos(psi) - np.cos(phi)*np.sin(psi), np.cos(phi)*np.sin(theta)*np.cos(psi) + np.sin(phi)*np.sin(psi)],
@@ -77,12 +108,11 @@ def f(t, x, u_i):
                                 [0, np.cos(phi), -np.sin(phi)],
                                 [0, np.sin(phi)/np.cos(theta), np.cos(phi)/np.cos(theta)]])
 
-    pos_dot = np.dot(pos_rot_matrix, np.array([u, v, w])) # From Slide 15
-    V_dot = np.array([r*v-q*w, p*w-r*u, q*u-p*v]) + (1/mass)*f # From Slide 15
-    euler_dot = np.dot(euler_rot_matrix, np.array([p, q, r])) # From Slide 15
+    pos_dot = np.dot(pos_rot_matrix, M_vg)
+    V_dot = np.array([r*v-q*w, p*w-r*u, q*u-p*v]) + (1/mass)*force
+    euler_dot = np.dot(euler_rot_matrix, M_angular)
     W_dot = np.array([Gamma1*p*q-Gamma2*q*r, Gamma5*p*r-Gamma6*(p**2-r**2), Gamma7*p*q-Gamma1*q*r]) + np.array([Gamma3*l+Gamma4*n, (1/J_y)*m, Gamma4*l+Gamma8*n]) # From Slide 15
-
-    print(V_a)
+    # W_dot = np.linalg.inv(J_i) @ (np.cross(-M_angular, (J_i @ M_angular)) + moment)
     
     return np.concatenate((pos_dot, V_dot, euler_dot, W_dot))
 

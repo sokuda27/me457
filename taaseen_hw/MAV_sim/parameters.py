@@ -1,3 +1,5 @@
+import numpy as np
+
 # Parameters file for the Aerosonde
 
 # Physical Parameters
@@ -14,6 +16,9 @@ b = 2.9           # Wing Span in m
 c = 0.19          # Mean Aerodynamic Chord in m
 rho = 1.268       # Air Density in kg/m^3
 e = 0.9           # Oswald Efficiency Factor
+
+J_i = np.array([[J_x, 0, -J_xz], [0, J_y, 0], [-J_xz, 0, J_z]]) # Moment of Inertia Matrix
+
 
 # Motor Parameters
 V_max = 44.4      # Maximum Velocity in m/s
