@@ -2,9 +2,9 @@
 
 # Inputs
 # Wind Parameters
-u_w0 = 10
-v_w0 = 10
-w_w0 = 0
+u_w = 10
+v_w = 10
+w_w = 0
 
 # Initial Conditions
 ## Translational Kinematics State

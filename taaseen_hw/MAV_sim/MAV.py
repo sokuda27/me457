@@ -1,13 +1,5 @@
 # In[ ]:
 # Imports
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.integrate import odeint
-from mpl_toolkits.mplot3d import Axes3D
-
-import integrators as intg
-from parameters import *
-from inputs import *
 
 ######################################################################
 # Author: Taaseen Jahan                                              #
@@ -17,26 +9,26 @@ from inputs import *
 # taken from Small Unmanned Aircraft: Theory and Practice Supplement #
 # by Beard and McLain.                                               #
 #                                                                    #
-# Received help and adapted code from Saira Billah.                  #
+# Received help and adapted code from Saira Billah and Sonam Okuda.  #
 ######################################################################
 
-x_IC = np.array([p_n_0, p_e_0, p_d_0, u_0, v_0, w_0, phi_0, theta_0, psi_0, p_0, q_0, r_0]) # Initial Conditions Vector
-u_IC = np.array([u_w0, v_w0, w_w0])
+# Python Imports
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import odeint
+from mpl_toolkits.mplot3d import Axes3D
 
-# Gamma Values
-Gamma = J_x*J_z-J_xz**2
-Gamma1 = J_xz*(J_x-J_y+J_z)/Gamma
-Gamma2 = (J_z*(J_z-J_y)+J_xz**2)/Gamma
-Gamma3 = J_z/Gamma
-Gamma4 = J_xz/Gamma
-Gamma5 = (J_z-J_x)/J_y
-Gamma6 = J_xz/J_y
-Gamma7 = ((J_x-J_y)*J_x+J_xz**2)/Gamma
-Gamma8 = J_x/Gamma
+# Variable Imports
+import integrators as intg
+from parameters import *
+from inputs import *
+
+# Initial Conditions
+x_IC = np.array([p_n_0, p_e_0, p_d_0, u_0, v_0, w_0, phi_0, theta_0, psi_0, p_0, q_0, r_0]) # Initial Conditions Vector
+u_IC = 0 # Initial Control Inputs Vector
 
 def f(t, x, u_i):
     p_n, p_e, p_d, u, v, w, phi, theta, psi, p, q, r = x
-    u_w, v_w, w_w = u_i
     
     # State Variable Matrices
     M_ned = np.array([p_n, p_e, p_d])
@@ -118,6 +110,7 @@ def f(t, x, u_i):
 # Time Stepping Parameters
 dt = 0.01; num = 10
 
+# Implement Integrator
 t = 0; x = x_IC; u_i = u_IC
 integrator = intg.RK4(dt, f)
 t_history = [0]
@@ -130,6 +123,7 @@ for i in range(num):
     t_history.append(t)
     x_history.append(x)
 
+# Extract State Variables
 p_n_values = [arr[0] for arr in x_history]
 p_e_values = [arr[1] for arr in x_history]
 p_d_values = [arr[2] for arr in x_history]
@@ -151,6 +145,7 @@ plt.plot(t_history, p_n_values)
 #plt.legend(["pn", "pe", "pd"])
 plt.show()
 
+# 3D Plot of Position
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.plot(p_n_values, p_e_values, p_d_values)

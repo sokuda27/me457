@@ -17,8 +17,19 @@ c = 0.19          # Mean Aerodynamic Chord in m
 rho = 1.268       # Air Density in kg/m^3
 e = 0.9           # Oswald Efficiency Factor
 
-J_i = np.array([[J_x, 0, -J_xz], [0, J_y, 0], [-J_xz, 0, J_z]]) # Moment of Inertia Matrix
+# Moment of Inertia Matrix
+J_i = np.array([[J_x, 0, -J_xz], [0, J_y, 0], [-J_xz, 0, J_z]])
 
+# Gamma Values
+Gamma = J_x*J_z-J_xz**2
+Gamma1 = J_xz*(J_x-J_y+J_z)/Gamma
+Gamma2 = (J_z*(J_z-J_y)+J_xz**2)/Gamma
+Gamma3 = J_z/Gamma
+Gamma4 = J_xz/Gamma
+Gamma5 = (J_z-J_x)/J_y
+Gamma6 = J_xz/J_y
+Gamma7 = ((J_x-J_y)*J_x+J_xz**2)/Gamma
+Gamma8 = J_x/Gamma
 
 # Motor Parameters
 V_max = 44.4      # Maximum Velocity in m/s
