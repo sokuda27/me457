@@ -98,7 +98,7 @@ def f(t, x, u_i):
     
     #new forces and moments with wind and drag and propulsion
     fx = -mass*g*np.sin(theta) + (.5*rho*V_a**2*S)*(C_x_alpha + C_x_q_alpha*(c/(2*V_a))*q + C_x_p_e_alpha*pe) + T_p
-    fy = mass*g*np.cos(theta)*np.sin(phi) + (.5*rho*V_a**2*S)*(C_Y_0 + C_Y_B + C_Y_p*(b/(2*V_a))*p + C_Y_r*(b/(2*V_a))*r + C_Y_pa*pa + C_Y_pr*pr) + 0
+    fy = mass*g*np.cos(theta)*np.sin(phi) + (.5*rho*V_a**2*S)*(C_Y_0 + C_Y_B*beta + C_Y_p*(b/(2*V_a))*p + C_Y_r*(b/(2*V_a))*r + C_Y_pa*pa + C_Y_pr*pr) + 0
     fz = mass*g*np.cos(theta)*np.cos(phi) + (.5*rho*V_a**2*S)*(C_z_alpha + C_z_q_alpha*(c/(2*V_a))*q + C_z_p_e_alpha*pe) + 0
     l = (.5*rho*V_a**2*S)*b*(C_l_0 + C_l_B*beta + C_l_p*(b/(2*V_a))*p + C_l_r*(b/(2*V_a))*r + C_l_pa*pa + C_l_pr*pr) + Q_p
     m = (.5*rho*V_a**2*S)*c*(C_m_0 + C_m_a*alpha + C_m_q*(c/(2*V_a))*q + C_m_pe*pe) + 0
