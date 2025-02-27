@@ -21,7 +21,7 @@ from inputs import *
 ######################################################################
 
 x_IC = np.array([p_n_0, p_e_0, p_d_0, u_0, v_0, w_0, phi_0, theta_0, psi_0, p_0, q_0, r_0]) # Initial Conditions Vector
-u_IC = np.array([l_0, m_0, n_0])
+u_IC = np.array([u_w0, v_w0, w_w0])
 
 # Gamma Values
 Gamma = J_x*J_z-J_xz**2
@@ -36,7 +36,7 @@ Gamma8 = J_x/Gamma
 
 def f(t, x, u_i):
     p_n, p_e, p_d, u, v, w, phi, theta, psi, p, q, r = x
-    l, m, n = u_i
+    u_w, v_w, w_w = u_i
     
     # State Variable Matrices
     M_ned = np.array([p_n, p_e, p_d])
@@ -52,7 +52,7 @@ def f(t, x, u_i):
     V_a = np.sqrt(u_r**2 + v_r**2 + w_r**2)
     
     # Aerodynamic Calculations
-    alpha = np.arctan2(w_r, u_r)
+    alpha = np.arctan(w_r/u_r)
     beta = np.arcsin(v_r/(np.sqrt(u_r**2 + v_r**2 + w_r**2)))
     C_D = C_D_0 + C_D_alpha*alpha
     C_L = C_L_0 + C_L_alpha*alpha
@@ -111,19 +111,18 @@ def f(t, x, u_i):
     pos_dot = np.dot(pos_rot_matrix, M_vg)
     V_dot = np.array([r*v-q*w, p*w-r*u, q*u-p*v]) + (1/mass)*force
     euler_dot = np.dot(euler_rot_matrix, M_angular)
-    W_dot = np.array([Gamma1*p*q-Gamma2*q*r, Gamma5*p*r-Gamma6*(p**2-r**2), Gamma7*p*q-Gamma1*q*r]) + np.array([Gamma3*l+Gamma4*n, (1/J_y)*m, Gamma4*l+Gamma8*n]) # From Slide 15
-    # W_dot = np.linalg.inv(J_i) @ (np.cross(-M_angular, (J_i @ M_angular)) + moment)
+    W_dot = np.linalg.inv(J_i) @ (np.cross(-M_angular, (J_i @ M_angular)) + moment)
     
     return np.concatenate((pos_dot, V_dot, euler_dot, W_dot))
 
 # Time Stepping Parameters
-dt = 0.1; n = 100
+dt = 0.01; num = 10
 
 t = 0; x = x_IC; u_i = u_IC
 integrator = intg.RK4(dt, f)
 t_history = [0]
 x_history = [x]
-for i in range(n):
+for i in range(num):
     
     x = integrator.step(t, x, u_i)
     t = (i+1) * dt
