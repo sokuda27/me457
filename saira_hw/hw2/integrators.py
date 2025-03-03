@@ -18,15 +18,22 @@ class Heun(Integrator):
         intg = Euler(self.dt, self.f)
         xe = intg.step(t, x, u) # Euler predictor step
         return x + 0.5*self.dt * (self.f(t, x, u) + self.f(t+self.dt, xe, u))
-    
-class RungeKutta3(Integrator):
-    def step(self, t, x, u):
-        intg = Heun(self.dt, self.f)
-        x2 = intg.step(t, x, u) # Heun step (rk2)
-        return x + 0.5*self.dt * (self.f(t, x, u) + self.f(t+self.dt, x2, u))
-    
+
+"""
+x = yi
+h = self.dt
+k1 = self.f(t,x,u) = f(xi, yi)
+k2 = self.f(t+self.dt, xe, u) = f(xi+h, yi+k1*h)
+"""
+
 class RungeKutta4(Integrator):
     def step(self, t, x, u):
-        intg = RungeKutta3(self.dt, self.f)
-        x3 = intg.step(t, x, u) # RK3 step
-        return x + self.dt * (self.f(t, x, u) + self.f(t+self.dt, x3, u))
+        k1 = self.dt*self.f(t,x,u)
+        k2 = self.dt*self.f(t+self.dt/2, x + k1/2, u)
+        k3 = self.dt*self.f(t+self.dt/2, x + k2/2, u)
+        k4 = self.dt*self.f(t+self.dt, x + k3, u)
+        return x + k1/6 + k2/3 + k3/3 + k4/6
+        
+
+        
+
