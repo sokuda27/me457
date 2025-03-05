@@ -95,38 +95,79 @@ class MavDynamics(MavDynamicsForces):
         CD = MAV.C_D_0 + MAV.C_D_alpha*self._alpha
         
         # compute Lift and Drag Forces (F_lift, F_drag)
-        F_lift = 0.5*MAV.rho*self._Va**2*MAV.S_wing*CL
-        F_drag = 0.5*MAV.rho*self._Va**2*MAV.S_wing*CD
+        c = MAV.c
+        C_L_q = MAV.C_L_q
+        C_L_delta_e = MAV.C_L_delta_e
+        C_D_delta_e = MAV.C_D_delta_e
+        C_D_q = MAV.C_D_q
+        delta_e = delta.elevator
+        F_lift = 0.5*MAV.rho*self._Va**2*MAV.S_wing*(CL+C_L_q*c*q/(2*self._Va)+C_L_delta_e*delta_e)
+        F_drag = 0.5*MAV.rho*self._Va**2*MAV.S_wing*(CD+C_D_q*c*q/(2*self._Va)+C_D_delta_e*delta_e)
         
         # propeller thrust and torque
         thrust_prop, torque_prop = self._motor_thrust_torque(self._Va, delta.throttle)
 
         # compute longitudinal forces in body frame (fx, fz)
-        fx = -np.cos(self._alpha)*(F_drag) + np.sin(self._alpha)*F_lift
+        fx = -np.cos(self._alpha)*(F_drag) + np.sin(self._alpha)*F_lift + thrust_prop
         fz = -np.sin(self._alpha)*(F_drag) - np.cos(self._alpha)*F_lift
         
         
         # compute lateral forces in body frame (fy)
-        fy = 
+        b = MAV.b
+        C_Y_0 = MAV.C_Y_0
+        C_Y_beta = MAV.C_Y_beta
+        C_Y_p = MAV.C_Y_p
+        C_Y_r = MAV.C_Y_r
+        C_Y_delta_a = MAV.C_Y_delta_a
+        C_Y_delta_r = MAV.C_Y_delta_r
+        delta_a = delta.aileron
+        delta_r = delta.rudder
+        fy = 0.5*MAV.rho*self._Va**2*MAV.S_wing*(C_Y_0 + C_Y_beta*self._beta + (b/(2*self._Va))*(C_Y_p*p + C_Y_r*r) + C_Y_delta_a*delta_a + C_Y_delta_r*delta_r)
         
-        # compute logitudinal torque in body frame (My)
+        # compute logitudinal torque in body frame (My) m
+        C_m_0 = MAV.C_m_0
+        C_m_alpha = MAV.C_m_alpha
+        C_m_q = MAV.C_m_q
+        C_m_delta_e = MAV.C_m_delta_e
+        My = 0.5*MAV.rho*self._Va**2*MAV.S_wing*c*(C_m_0 + C_m_alpha*self._alpha + C_m_q*c*q/(2*self._Va) + C_m_delta_e*delta_e)
 
-        # compute lateral torques in body frame (Mx, Mz)
+        # compute lateral torques in body frame (Mx, Mz) (l,n)
+        C_ell_0 = MAV.C_ell_0
+        C_ell_beta = MAV.C_ell_beta
+        C_ell_p = MAV.C_ell_p
+        C_ell_r = MAV.C_ell_r
+        C_ell_delta_a = MAV.C_ell_delta_a
+        C_ell_delta_r = MAV.C_ell_delta_r
+        C_n_0 = MAV.C_n_0
+        C_n_beta = MAV.C_n_beta
+        C_n_p = MAV.C_n_p
+        C_n_r = MAV.C_n_r
+        C_n_delta_a = MAV.C_n_delta_a
+        C_n_delta_r = MAV.C_n_delta_r
+        Mx = 0.5*MAV.rho*self._Va**2*MAV.S_wing*b*(C_ell_0 + C_ell_beta*self._beta + (b/(2*self._Va))*(C_ell_p*p + C_ell_r*r) + C_ell_delta_a*delta_a + C_ell_delta_r*delta_r) + torque_prop
+        Mz = 0.5*MAV.rho*self._Va**2*MAV.S_wing*b*(C_n_0 + C_n_beta*self._beta + (b/(2*self._Va))*(C_n_p*p + C_n_r*r) + C_n_delta_a*delta_a + C_n_delta_r*delta_r)
 
-        forces_moments = np.array([[0, 0, 0, 0, 0, 0]]).T
+        forces_moments = np.array([[fx, fy, fz, Mx, My, Mz]]).T #saira note: check order!!!
         return forces_moments
 
     def _motor_thrust_torque(self, Va, delta_t):
         # compute thrust and torque due to propeller
         ##### TODO #####
         # map delta_t throttle command(0 to 1) into motor input voltage
-        # v_in =
-
+        KQ = MAV.KQ
+        v_in = MAV.V_max * delta_t
+        a = MAV.C_Q0 * MAV.rho * np.power(MAV.D_prop, 5)/((2.*np.pi)**2)
+        b = (MAV.C_Q1 * MAV.rho * np.power(MAV.D_prop,4)/(2.*np.pi)) * self._Va + KQ**2/MAV.R_motor
+        c = MAV.C_Q2 * MAV.rho * np.power(MAV.D_prop,3) * self._Va**2 - (KQ*v_in/MAV.R_motor) * v_in + KQ*MAV.i0
         # Angular speed of propeller (omega_p = ?)
-
+        omega_p = (-b + np.sqrt(b**2 - 4*a*c))/(2.*a)
+        J_op = 2*np.pi*self._Va/(omega_p*MAV.D_prop)
+        C_T = MAV.C_T2*J_op**2 + MAV.C_T1 * J_op + MAV.C_T0
+        C_Q = MAV.C_Q2*J_op**2 + MAV.C_Q1 + J_op + MAV.C_Q0
         # thrust and torque due to propeller
-        thrust_prop = 0
-        torque_prop = 0
+        n = omega_p/(2*np.pi)
+        thrust_prop = MAV.rho * n**2 * np.power(MAV.D_prop,4) * C_T
+        torque_prop = MAV.rho * n**2 * np.power(MAV.D_prop,5) * C_Q
 
         return thrust_prop, torque_prop
 
