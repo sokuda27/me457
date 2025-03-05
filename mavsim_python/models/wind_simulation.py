@@ -37,4 +37,3 @@ class WindSimulation:
                          [self.v_w.update(np.random.randn())],
                          [self.w_w.update(np.random.randn())]])
         return np.concatenate(( self._steady_state, gust ))
-
