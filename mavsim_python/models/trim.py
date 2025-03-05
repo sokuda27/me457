@@ -12,20 +12,18 @@ import time
 
 def compute_trim(mav, Va, gamma):
     # define initial state and input
-
-    ##### TODO #####
     # set the initial conditions of the optimization
     e0 = Euler2Quaternion(0., gamma, 0.)
-    state0 = np.array([[0],  # pn
-                   [0],  # pe
-                   [0],  # pd
-                   [0],  # u
+    state0 = np.array([[mav._state.item(0)],  # pn
+                   [mav._state.item(1)],  # pe
+                   [mav._state.item(2)],  # pd
+                   [Va],  # u
                    [0.], # v
                    [0.], # w
-                   [1],  # e0
-                   [0],  # e1
-                   [0],  # e2
-                   [0],  # e3
+                   [e0[0]],  # e0
+                   [e0[1]],  # e1
+                   [e0[2]],  # e2
+                   [e0[3]],  # e3
                    [0.], # p
                    [0.], # q
                    [0.]  # r
@@ -76,6 +74,12 @@ def compute_trim(mav, Va, gamma):
 
 def trim_objective_fun(x, mav, Va, gamma):
     # objective function to be minimized
-    ##### TODO #####
-    J = 0
+    curr_state = x[0:13]
+    delta = MsgDelta(elevator = x[13],
+                     aileron = x[14],
+                     rudder = x[15],
+                     throttle = x[16])
+    desired_state = np.array([[0, 0, -Va * np.sin(gamma), 0, 0, 0, 0, 0, 0, 0, 0, 0]]).T
+    diff = desired_state - curr_state
+    J = np.linalg.norm(diff[2:13])**2
     return J
