@@ -2,7 +2,7 @@ from plotter import Plotter
 import random
 import numpy as np
 
-p = Plotter(3)
+p = Plotter(3, 3)
 p.show_window()
 p.create_plot_widget(plot_id="foo", xlabel="xXx", ylabel="yYy",background_color='w')
 p.create_plot_widget(plot_id="fig", xlabel="xXx", ylabel="yYy")
