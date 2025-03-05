@@ -19,6 +19,7 @@ from models.wind_simulation import WindSimulation
 from models.trim import compute_trim
 from models.compute_models import compute_model
 from tools.signals import Signals
+
 from viewers.view_manager import ViewManager
 import time
 
