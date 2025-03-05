@@ -206,7 +206,7 @@ class MavDynamics(MavDynamicsForces):
 
         # compute lateral torques in body frame
         Mx = pVa2S_2 * MAV.b * (
-                    MAV.C_ell_0 + MAV.C_ell_beta * beta + MAV.C_ell_p * b_2Va * p + MAV.C_ell_r * b_2Va * r + MAV.C_ell_delta_a * delta.aileron + MAV.C_ell_delta_r * delta.rudder) + torque_prop
+                    MAV.C_ell_0 + MAV.C_ell_beta * beta + MAV.C_ell_p * b_2Va * p + MAV.C_ell_r * b_2Va * r + MAV.C_ell_delta_a * delta.aileron + MAV.C_ell_delta_r * delta.rudder) - torque_prop
         Mz = pVa2S_2 * MAV.b * (
                     MAV.C_n_0 + MAV.C_n_beta * beta + MAV.C_n_p * b_2Va * p + MAV.C_n_r * b_2Va * r + MAV.C_n_delta_a * delta.aileron + MAV.C_n_delta_r * delta.rudder)
         self._forces[0] = fx
@@ -266,7 +266,7 @@ class MavDynamics(MavDynamicsForces):
         #thrust_prop = 0.5 * MAV.rho * MAV.S_prop * d_prop * ((R * delta_t)**2 - Va**2)
         thrust_prop = MAV.rho * n**2 * np.power(d_prop, 4) * ct_func
         #torque_prop = kq * ((1 / R) * (V_in - kv * Omega_p) - io)
-        torque_prop = -MAV.rho * n**2 * np.power(d_prop, 5) * cq_func
+        torque_prop = MAV.rho * n**2 * np.power(d_prop, 5) * cq_func
         #torque_prop = MAV.rho * MAV.C_Q0 * MAV.D_prop**5 / (4 * math.pi**2) * sigma_p**2 + MAV.rho * MAV.C_Q1 * Va * MAV.D_prop**4 / (2 * math.pi) * sigma_p + MAV.rho * MAV.C_Q2 * MAV.D_prop**3 * Va**2
         return thrust_prop, torque_prop
 
