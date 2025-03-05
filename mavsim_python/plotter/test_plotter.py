@@ -1,8 +1,10 @@
 from plotter import Plotter
 import random
 import numpy as np
+from PyQt5.QtWidgets import QApplication, QWidget  
+import sys
 
-p = Plotter(3, 3)
+p = Plotter(QApplication(sys.argv), 3)
 p.show_window()
 p.create_plot_widget(plot_id="foo", xlabel="xXx", ylabel="yYy",background_color='w')
 p.create_plot_widget(plot_id="fig", xlabel="xXx", ylabel="yYy")
@@ -19,7 +21,7 @@ for i in range(200):
     p.add_data_point("fi","truth",i,random.randint(0,20))
     p.add_data_point("fi","estimate",i,random.randint(0,20))
     # time.sleep(0.1)
-    p.update_window(0.01)
+    p.update_plots()
     if i == 20:
         p.save_image()
 p.hold_window_until_exit()
