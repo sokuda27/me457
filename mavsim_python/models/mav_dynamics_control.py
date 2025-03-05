@@ -63,7 +63,7 @@ class MavDynamics(MavDynamicsForces):
         # add the gust 
         wind_body += gust
         # convert total wind to world frame
-        self._wind = self._state[3:5] - wind_body
+        self._wind = self._state[3:6] - wind_body
 
         # velocity vector relative to the airmass ([ur , vr, wr]= ?)
         [ur, vr, wr] = self._wind
@@ -83,7 +83,7 @@ class MavDynamics(MavDynamicsForces):
         ##### TODO ######
         # extract states (phi, theta, psi, p, q, r)
         phi, theta, psi = quaternion_to_euler(self._state[6:10])
-        p,q,r = self._state[10:12]
+        p,q,r = self._state[10:13]
         
         # compute gravitational forces ([fg_x, fg_y, fg_z])
         fg_x = -MAV.mass*9.8*np.sin(theta)
