@@ -114,14 +114,54 @@ def compute_ss_model(mav, trim_state, trim_input):
     ##### TODO #####
     A = df_dx(mav, x_euler, trim_input)
     B = df_du(mav, x_euler, trim_input)
+    
+        # States Assignments
+    p_n = 0
+    p_e = 1
+    h = 2
+    u = 3
+    v = 4
+    w = 5
+    phi = 6 
+    theta = 7
+    psi = 8
+    p = 9
+    q = 10
+    r = 11
+    
+    # Inputs Assignments
+    delta_e = 0
+    delta_a = 1
+    delta_r = 2
+    delta_t = 3
+    
     # extract longitudinal states (u, w, q, theta, pd)
     A_lon = np.zeros((5,5))
+    A_lon = np.array([[A[u,u], A[u,w], A[u,q], A[u,theta], A[u,h]],
+                      [A[w,u], A[w,w], A[w,q], A[w,theta], A[w,h]],
+                      [A[q,u], A[q,w], A[q,q], A[q,theta], A[q,h]],
+                      [A[theta,u], A[theta,w], A[theta,q], A[theta,theta], A[theta,h]],
+                      [A[h,u], A[h,w], A[h,q], A[h,theta], A[h,h]]])
     B_lon = np.zeros((5,2))
-    # change pd to h
+    B_lon = np.array([[[u,delta_e], [u,delta_t]],
+                      [[w, delta_e], [w,delta_t]],
+                      [[q,delta_e], [q,delta_t]],
+                      [[theta,delta_e], [theta,delta_t]],
+                      [[h,delta_e], [h,delta_t]]])
 
     # extract lateral states (v, p, r, phi, psi)
-    A_lat = np.zeros((5,5))
-    B_lat = np.zeros((5,2))
+    # A_lat = np.zeros((5,5))
+    A_lat = np.array([[A[v,v], A[v,p], A[v,r], A[v,phi], A[v,psi]],
+                      [A[p,v], A[p,p], A[p,r], A[p,phi], A[p,psi]],
+                      [A[r,v], A[r,p], A[r,r], A[r,phi], A[r,psi]],
+                      [A[phi,v], A[phi,p], A[phi,r], A[phi,phi], A[phi,psi]],
+                      [A[psi,v], A[psi,p], A[psi,r], A[psi,phi], A[psi,psi]]])
+    # B_lat = np.zeros((5,2))
+    B_lat = np.array([[B[v,delta_a], B[v,delta_r]],
+                      [B[p, delta_a], B[p, delta_r]],
+                      [B[r, delta_a], B[r, delta_r]],
+                      [B[phi, delta_a], B[phi, delta_r]],
+                      [B[psi, delta_a], B[psi, delta_r]]])    
     return A_lon, B_lon, A_lat, B_lat
 
 def euler_state(x_quat):
