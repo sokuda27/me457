@@ -12,8 +12,10 @@ mav = MavDynamics(SIM.ts_simulation)
 Va = 25.
 gamma = 0.*np.pi/180.
 trim_state, trim_input = compute_trim(mav, Va, gamma)
-mav._state = trim_state  # set the initial state of the mav to the trim state
+mav._state = np.array([0,0,0,0,0,0,0,0,0,0,0,0]) # trim_state  # set the initial state of the mav to the trim state
 delta = trim_input  # set input to constant constant trim input
+
+print(trim_input)
 
 sim_time = SIM.start_time
 end_time = 60 
@@ -24,9 +26,9 @@ delta_a_trim = delta.aileron
 delta_r_trim = delta.rudder
 
 # no input
-delta.elevator = 0
-delta.aileron = 0
-delta.rudder = 0
+# delta.elevator = 0
+# delta.aileron = 0
+# delta.rudder = 0
 
 pnorth_hist = [mav._state[0]]
 peast_hist = [mav._state[1]]
