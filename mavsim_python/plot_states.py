@@ -1,9 +1,23 @@
+import numpy as np
 from models.mav_dynamics import MavDynamics
 from models.wind_simulation import WindSimulation
+import parameters.simulation_parameters as SIM
+from models.trim import compute_trim
 
-mav = MavDynamics()
-wind_sim = WindSimulation()
-rk4 = mav.update()
+wind = WindSimulation(SIM.ts_simulation)
+mav = MavDynamics(SIM.ts_simulation)
+
+Va = 25.
+gamma = 0.*np.pi/180.
+trim_state, trim_input = compute_trim(mav, Va, gamma)
+mav._state = trim_state  # set the initial state of the mav to the trim state
+delta = trim_input  # set input to constant constant trim input
+
+sim_time = SIM.start_time
+end_time = 60 
+
+while sim_time < end_time:
+    current_wind = wind.update() 
 
 # intg.__doc__
 # plt.figure()
