@@ -52,6 +52,7 @@ print("    r_dt: ", x_dot.item(12) , "\n\n\n")
 
 ##### Case 1 ######
 
+
 delta.elevator = -0.15705144
 delta.aileron = 0.01788999
 delta.rudder = 0.01084654
