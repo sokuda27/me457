@@ -199,15 +199,11 @@ def f_euler(mav, x_euler, delta):
 def df_dx(mav, x_euler, delta):
     # take partial of f_euler with respect to x_euler
     eps = 0.01  # deviation
+
     ##### TODO #####
     A = np.zeros((12, 12))  # Jacobian of f wrt x
-    f_at_x = f_euler(mav, x_euler, delta)
-    for i in range(0, delta):
-        x_eps = np.copy(x_euler)
-        x_eps[i][0] += eps
-        f_at_x_eps = f_euler(mav, x_eps, delta)
-        df_dxi = (f_at_x_eps - f_at_x) / eps
     return A
+
 
 def df_du(mav, x_euler, delta):
     # take partial of f_euler with respect to input
