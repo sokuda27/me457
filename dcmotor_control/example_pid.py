@@ -16,7 +16,6 @@ class Controller:
         self.integrator = get_integrator(P.Ts, None, integrator="Heun")
         # Initialize state
         self.state = np.zeros(2)  # [integral, previous error]
-        pass
 
 
     def update(self, r, y):
@@ -30,9 +29,9 @@ class Controller:
         # Compute error
         e = r - y
         # Compute control signal
-        u = PIDControl(e, P.kp, P.ki, P.kd, P.Ts)
+        pid = PIDControl(e, P.kp, P.ki, P.kd, 0, P.sigma, P.Ts)
+        u = pid.PID(r, y)
         return u
-        pass
     
 class System:
     def __init__(self):
@@ -41,15 +40,18 @@ class System:
         self.K = P.K
         self.tau = P.tau
         self.umax = P.umax
+        self.ts = P.Ts
         # Initialize integrator
-        self.integrator = get_integrator(P.Ts, None, integrator="Heun")
+        self.integrator = get_integrator(P.Ts, None, integrator="RK4")
         # Initialize state
-        self.state = np.zeros(1)
-        pass        
+        self.state = np.zeros(1)        
     
+    def f(self, x, u):
+        return 1/self.tau*(self.K*u - x)
    
     def update(self, u):
-        pass
+        prev_state = self.f(self.state, u)
+        new_state = self.integrator(self.ts, prev_state)
 
 # Init system and feedback controller
 system = System()
