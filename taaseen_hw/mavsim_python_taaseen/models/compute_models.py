@@ -167,9 +167,12 @@ def compute_ss_model(mav, trim_state, trim_input):
 def euler_state(x_quat):
     # convert state x with attitude represented by quaternion
     # to x_euler with attitude represented by Euler angles
-    
-    ##### TODO #####
+    phi, theta, psi = quaternion_to_euler(x_quat[6:10])
     x_euler = np.zeros((12,1))
+    x_euler[:6] = x_quat[:6]
+    x_euler[6:9] = np.array([[phi, theta, psi]]).T
+    x_euler[9:] = x_quat[10:]
+    
     return x_euler
 
 def quaternion_state(x_euler):
@@ -177,7 +180,15 @@ def quaternion_state(x_euler):
     # to x_quat with attitude represented by quaternions
 
     ##### TODO #####
+    phi = x_euler.item(6)
+    theta= x_euler.item(7)
+    psi = x_euler.item(8)
+    e = euler_to_quaternion(phi, theta, psi)
+    
     x_quat = np.zeros((13,1))
+    x_quat[:6] = x_euler[:6]
+    x_quat[6:10] = e
+    x_quat[10:] = x_euler[9:]
     return x_quat
 
 def f_euler(mav, x_euler, delta):
@@ -201,7 +212,15 @@ def df_dx(mav, x_euler, delta):
     eps = 0.01  # deviation
 
     ##### TODO #####
-    A = np.zeros((12, 12))  # Jacobian of f wrt x
+    # Jacobian of f wrt x
+    A = np.zeros((12, 12))
+    f_at_x = f_euler(mav, x_euler, delta)
+    for i in range(0, 12):
+        x_eps = np.copy(x_euler)
+        x_eps[i][0] += eps
+        f_at_x_eps = f_euler(mav, x_eps, delta)
+        df_dxi = (f_at_x_eps - f_at_x) / eps
+        A[:, i] = df_dxi[:, 0]
     return A
 
 
@@ -211,6 +230,13 @@ def df_du(mav, x_euler, delta):
 
     ##### TODO #####
     B = np.zeros((12, 4))  # Jacobian of f wrt u
+    f_at_u = f_euler(mav, x_euler, delta)
+    for i in range(0, 4):
+        delta_eps = np.copy(delta)
+        delta_eps[i] += eps
+        f_at_u_eps = f_euler(mav, x_euler, delta_eps)
+        df_dui = (f_at_u_eps - f_at_u) / eps
+        B[:, i] = df_dui[:, 0]
     return B
 
 

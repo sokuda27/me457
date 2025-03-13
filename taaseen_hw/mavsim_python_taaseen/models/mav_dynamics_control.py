@@ -28,6 +28,7 @@ class MavDynamics(MavDynamicsForces):
         self._Va = MAV.u0
         self._alpha = 0
         self._beta = 0
+        self._delta = 0
         # update velocity data and forces and moments
         self._update_velocity_data()
         self._forces_moments(delta=MsgDelta())
