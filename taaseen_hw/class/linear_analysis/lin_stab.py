@@ -8,16 +8,20 @@ from mavsim_python_chap5_model_coef import *
 # longitudinal states: u, w, q, theta, h
 # inputs: delta_e, delta_t
 w, v = LA.eig(A_lon)
+w1, v1 = LA.eig(A_lat)
 #B_lon = B_lon[:,0:0]
 print(B_lon.shape) # only elevator input: delta_e
 C_lon = np.eye(5)
 D_lon = np.zeros((5,2 ))
-sys = ss(A_lon, B_lon, C_lon, D_lon)
+C_lat = np.eye(5)
+D_lat = np.zeros((5,2))
+# sys = ss(A_lon, B_lon, C_lon, D_lon)
+sys = ss(A_lat, B_lat, C_lat, D_lat)
 
 fig, ax = plt.subplots()
 ax.set_xlabel(r'$Re$')
 ax.set_ylabel(r'$Im$')
-ax.plot(np.real(w), np.imag(w), 'x')
+ax.plot(np.real(w1), np.imag(w1), 'x')
 ax.grid()
 plt.show()
 
