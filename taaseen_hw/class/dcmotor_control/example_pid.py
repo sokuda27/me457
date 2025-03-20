@@ -7,8 +7,6 @@ from matplotlib import pyplot as plt
 
 class Controller:
     def __init__(self):
-        """Initialize the controller with parameters."""
-        # Initialize PID parameters
         self.kp = P.kp
         self.ki = P.ki
         self.kd = P.kd
@@ -26,8 +24,6 @@ class Controller:
     
 class System:
     def __init__(self):
-        """Initialize the system with parameters."""
-        # Initialize system parameters
         self.K = P.K
         self.tau = P.tau
         self.umax = P.umax
