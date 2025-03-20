@@ -60,11 +60,17 @@ class Autopilot:
 	
 	#### TODO #####
         # lateral autopilot
-
-
+        chi_c = wrap(cmd.course_command, state.chi)
+        phi_c = self.saturate(cmd.phi_feedforward + self.course_from_roll.update(chi_c, state.chi) - np.radians(30), np.radians(3))
+        delta_a = self.roll_from_aileron.update(phi_c, state.phi, state.p)
+        delta_r = self.yaw_damper.update(state.r)
         # longitudinal autopilot
-
-
+        h_c = self.saturate(cmd.altitude_command, state.h - AP.altitude_zone, state.h + AP.altitude_zone)
+        theta_c = self.altitude_from_pitch.update(h_c, state.h)
+        delta_e = self.pitch_from_elevator.update(theta_c, state.theta, state.q)
+        delta_t = self.airspeed_from_throttle.update(cmd.Va_command, state.Va)
+        delta_t = self.saturate(delta_t, 0.0, 1.0)
+        
         # construct control outputs and commanded states
         delta = MsgDelta(elevator=0,
                          aileron=0,
