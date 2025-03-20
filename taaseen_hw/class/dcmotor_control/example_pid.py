@@ -2,6 +2,7 @@ import numpy as np
 import parameters as P
 from integrators import get_integrator
 from pid import PIDControl
+from matplotlib import pyplot as plt
 
 
 class Controller:
@@ -11,28 +12,17 @@ class Controller:
         self.kp = P.kp
         self.ki = P.ki
         self.kd = P.kd
+        self.umax = P.umax
+        self.udead = P.udead
+        self.sigma = P.sigma
         self.Ts = P.Ts
-        # Initialize integrator
         self.integrator = get_integrator(P.Ts, None, integrator="Heun")
-        # Initialize state
-        self.state = np.zeros(2)  # [integral, previous error]
-        pass
+        self.pid = PIDControl(self.kp, self.ki, self.kd, self.umax, self.sigma, self.Ts)
 
 
     def update(self, r, y):
-        """Update the controller with new reference and measurement.
-        Args:
-            r (float): Reference value.
-            y (float): Measurement value.
-        Returns:
-            u (float): Control signal.
-        """
-        # Compute error
-        e = r - y
-        # Compute control signal
-        u = PIDControl(e, P.kp, P.ki, P.kd, P.Ts)
+        u = self.pid.PID(r, y)
         return u
-        pass
     
 class System:
     def __init__(self):
@@ -41,15 +31,14 @@ class System:
         self.K = P.K
         self.tau = P.tau
         self.umax = P.umax
-        # Initialize integrator
         self.integrator = get_integrator(P.Ts, None, integrator="Heun")
-        # Initialize state
         self.state = np.zeros(1)
         pass        
-    
    
     def update(self, u):
-        pass
+        state_dot = -(1/self.tau)*self.state + (self.K/self.tau)*u
+        self.state += state_dot*P.Ts
+        return self.state[0]
 
 # Init system and feedback controller
 system = System()
@@ -73,6 +62,21 @@ for i in range(P.nsteps):
     u_history.append(u)
 
 # Plot response y due to step change in r
+plt.figure(figsize=(10, 5))
+plt.subplot(2, 1, 1)
+plt.plot(t_history, y_history, label="System Output (y)")
+plt.title("Step Response of the System")
+plt.xlabel("Time [s]")
+plt.ylabel("Output (y)")
+plt.grid(True)
 
+# Plot actuation signal (u)
+plt.subplot(2, 1, 2)
+plt.plot(t_history, u_history, label="Control Signal (u)", color="orange")
+plt.title("Control Signal (u) over Time")
+plt.xlabel("Time [s]")
+plt.ylabel("Control Signal (u) [V]")
+plt.grid(True)
 
-# Plot actuation signal
+plt.tight_layout()
+plt.show()
