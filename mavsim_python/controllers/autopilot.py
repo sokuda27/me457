@@ -58,7 +58,7 @@ class Autopilot:
 
     def update(self, cmd, state):
 	
-	#### TODO #####
+	#### TODO ##
         # lateral autopilot
         chi_c = wrap(cmd.course_command, state.chi)
         phi_c = self.saturate(cmd.phi_feedforward + self.course_from_roll.update(chi_c, state.chi) - np.radians(30), np.radians(30))
@@ -70,7 +70,7 @@ class Autopilot:
         theta_c = self.altitude_from_pitch.update(h_c, state.h)
         delta_e = self.pitch_from_elevator.update(h_c, state.h)
         delta_t = self.airspeed_from_throttle.update(cmd.airspeed_command, state.Va)
-        delta_t = self.yaw_damper.update(state.r)
+        delta_t = self.saturate(delta_t, 0.0, 1.0)
 
         # construct control outputs and commanded states
         delta = MsgDelta(elevator=delta_e,
