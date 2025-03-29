@@ -85,11 +85,11 @@ def compute_ss_model(mav, trim_state, trim_input):
                       [A[theta,u], A[theta,w], A[theta,q], A[theta,theta], A[theta,h]],
                       [A[h,u], A[h,w], A[h,q], A[h,theta], A[h,h]]])
     B_lon = np.zeros((5,2))
-    B_lon = np.array([[[u,delta_e], [u,delta_t]],
-                      [[w, delta_e], [w,delta_t]],
-                      [[q,delta_e], [q,delta_t]],
-                      [[theta,delta_e], [theta,delta_t]],
-                      [[h,delta_e], [h,delta_t]]])
+    B_lon = np.array([[B[u,delta_e], B[u,delta_t]],
+                      [B[w, delta_e], B[w,delta_t]],
+                      [B[q,delta_e], B[q,delta_t]],
+                      [B[theta,delta_e], B[theta,delta_t]],
+                      [B[h,delta_e], B[h,delta_t]]])
 
     # extract lateral states (v, p, r, phi, psi)
     # A_lat = np.zeros((5,5))
@@ -107,10 +107,20 @@ def compute_ss_model(mav, trim_state, trim_input):
     return A_lon, B_lon, A_lat, B_lat
 
 def f_euler(mav, x_euler, delta):
+    # Convert Euler state to quaternion state
     x_quat = quaternion_state(x_euler)
-    mav._state = np.copy(x_quat)  # Ensure it's a proper array
-    mav._update_velocity_data()  # Error might happen here
-    f_euler_ = np.zeros((12, 1))  # Ensure correct shape
+    mav._state = np.copy(x_quat)  # Ensure the state is correctly set in the MAV dynamics
+    
+    # Update velocity and forces/moments based on the new state
+    mav._update_velocity_data()
+    forces_moments = mav._forces_moments(delta)
+
+    # Compute the state derivative using the MAV dynamics model
+    x_dot_quat = mav._f(mav._state, forces_moments)
+
+    # Convert quaternion state derivative back to Euler state derivative
+    f_euler_ = euler_state(x_dot_quat)  
+
     return f_euler_
 
 def df_dx(mav, x_euler, delta):
@@ -127,22 +137,33 @@ def df_dx(mav, x_euler, delta):
     return A
 
 def df_du(mav, x_euler, delta):
-    eps = 0.01  # deviation
-    B = np.zeros((12, 4))  # Jacobian of f wrt u
-    f_at_u = f_euler(mav, x_euler, delta)
+    eps = 0.01
+    B = np.zeros((12, 4))  # 12 states, 4 control inputs (aileron, elevator, rudder, throttle)
+    f_at_x = f_euler(mav, x_euler, delta)
 
-    # Create a copy of delta as a new MsgDelta instance
-    delta_eps = MsgDelta(delta.elevator, delta.aileron, delta.rudder, delta.throttle)
+    for i in range(4):
+        delta_eps = MsgDelta(
+            aileron=delta.aileron,
+            elevator=delta.elevator,
+            rudder=delta.rudder,
+            throttle=delta.throttle,
+        )
 
-    # Perturb each input variable
-    for i, attr in enumerate(["elevator", "aileron", "rudder", "throttle"]):
-        setattr(delta_eps, attr, getattr(delta, attr) + eps)  # Increment attribute
-        f_at_u_eps = f_euler(mav, x_euler, delta_eps)
-        df_dui = (f_at_u_eps - f_at_u) / eps
-        B[:, i] = df_dui[:, 0]
-        setattr(delta_eps, attr, getattr(delta, attr))  # Reset attribute
+        # Apply perturbation to the i-th control input
+        if i == 0:
+            delta_eps.aileron += eps
+        elif i == 1:
+            delta_eps.elevator += eps
+        elif i == 2:
+            delta_eps.rudder += eps
+        elif i == 3:
+            delta_eps.throttle += eps
+
+        f_at_x_eps = f_euler(mav, x_euler, delta_eps)
+        B[:, i] = ((f_at_x_eps - f_at_x) / eps).flatten()
 
     return B
+
 
 def dT_dVa(mav, Va, delta_t):
     """ Computes the derivative of thrust with respect to airspeed (Va) numerically """
