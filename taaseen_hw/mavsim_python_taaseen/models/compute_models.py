@@ -124,16 +124,15 @@ def f_euler(mav, x_euler, delta):
     return f_euler_
 
 def df_dx(mav, x_euler, delta):
-    eps = 0.01
+    eps = 0.001
     A = np.zeros((12, 12))
     f_at_x = f_euler(mav, x_euler, delta)
-
-    for i in range(12):
+    for i in range(0,12):
         x_eps = np.copy(x_euler)
         x_eps[i] += eps
         f_at_x_eps = f_euler(mav, x_eps, delta)
-        A[:, i] = ((f_at_x_eps - f_at_x) / eps).flatten()
-
+        df_dxi = (f_at_x_eps - f_at_x) / eps
+        A[:, i] = df_dxi [:]
     return A
 
 def df_du(mav, x_euler, delta):
@@ -160,10 +159,9 @@ def df_du(mav, x_euler, delta):
             delta_eps.throttle += eps
 
         f_at_x_eps = f_euler(mav, x_euler, delta_eps)
-        B[:, i] = ((f_at_x_eps - f_at_x) / eps).flatten()
+        B[:, i] = ((f_at_x_eps - f_at_x) / eps)
 
     return B
-
 
 def dT_dVa(mav, Va, delta_t):
     """ Computes the derivative of thrust with respect to airspeed (Va) numerically """
