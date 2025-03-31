@@ -129,38 +129,52 @@ def df_dx(mav, x_euler, delta):
     f_at_x = f_euler(mav, x_euler, delta)
     for i in range(0,12):
         x_eps = np.copy(x_euler)
+        print(x_euler)
         x_eps[i] += eps
         f_at_x_eps = f_euler(mav, x_eps, delta)
         df_dxi = (f_at_x_eps - f_at_x) / eps
         A[:, i] = df_dxi [:]
     return A
 
+# def df_du(mav, x_euler, delta):
+#     eps = 0.01
+#     B = np.zeros((12, 4))  # 12 states, 4 control inputs (aileron, elevator, rudder, throttle)
+#     f_at_x = f_euler(mav, x_euler, delta)
+
+#     for i in range(4):
+#         delta_eps = MsgDelta(
+#             aileron=delta.aileron,
+#             elevator=delta.elevator,
+#             rudder=delta.rudder,
+#             throttle=delta.throttle,
+#         )
+
+#         # Apply perturbation to the i-th control input
+#         if i == 0:
+#             delta_eps.aileron += eps
+#         elif i == 1:
+#             delta_eps.elevator += eps
+#         elif i == 2:
+#             delta_eps.rudder += eps
+#         elif i == 3:
+#             delta_eps.throttle += eps
+
+#         f_at_x_eps = f_euler(mav, x_euler, delta_eps)
+#         B[:, i] = ((f_at_x_eps - f_at_x) / eps)
+
+#     return B
+
 def df_du(mav, x_euler, delta):
-    eps = 0.01
-    B = np.zeros((12, 4))  # 12 states, 4 control inputs (aileron, elevator, rudder, throttle)
+    # take partial of f_quat with respect to delta
+    eps = .01  # deviation
+    B = np.zeros((12, 4))  # Jacobian of f wrt x
     f_at_x = f_euler(mav, x_euler, delta)
-
-    for i in range(4):
-        delta_eps = MsgDelta(
-            aileron=delta.aileron,
-            elevator=delta.elevator,
-            rudder=delta.rudder,
-            throttle=delta.throttle,
-        )
-
-        # Apply perturbation to the i-th control input
-        if i == 0:
-            delta_eps.aileron += eps
-        elif i == 1:
-            delta_eps.elevator += eps
-        elif i == 2:
-            delta_eps.rudder += eps
-        elif i == 3:
-            delta_eps.throttle += eps
-
-        f_at_x_eps = f_euler(mav, x_euler, delta_eps)
-        B[:, i] = ((f_at_x_eps - f_at_x) / eps)
-
+    for i in range(0, 4):
+        u_eps = np.copy(MsgDelta.to_array(delta))
+        u_eps[i][0] += eps  # add eps to the ith state
+        f_at_x_eps = f_euler(mav, x_euler, delta)
+        df_dxi = (f_at_x_eps - f_at_x) / eps
+        B[:, i] = df_dxi[:]
     return B
 
 def dT_dVa(mav, Va, delta_t):
