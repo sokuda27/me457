@@ -9,6 +9,7 @@ import parameters.control_parameters as AP
 from tools.transfer_function import TransferFunction
 from tools.wrap import wrap
 from controllers.pi_control import PIControl
+from controllers.pid_control import PIDControl
 from controllers.pd_control_with_rate import PDControlWithRate
 from controllers.tf_control import TFControl
 from message_types.msg_state import MsgState

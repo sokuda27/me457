@@ -44,8 +44,8 @@ def compute_tf_model(mav, trim_state, trim_input):
     a_theta3 = - (MAV.rho * Va_trim**2 * MAV.c * MAV.S_wing * MAV.C_m_delta_e)/(2 * MAV.Jy)
 
     # Compute transfer function coefficients using new propulsion model
-    a_V1 = MAV.rho * Va_trim * MAV.S_wing * (MAV.C_D_0 + MAV.C_D_alpha*alpha_trim + MAV.C_D_delta_e*delta_trim) - (1/MAV.mass) * dT_dVa(delta_trim, Va_trim)
-    a_V2 = (1/MAV.mass) * dT_ddelta_t(delta_trim, Va_trim)
+    a_V1 = MAV.rho * Va_trim * MAV.S_wing * (MAV.C_D_0 + MAV.C_D_alpha*alpha_trim + MAV.C_D_delta_e*delta_trim) - (1/MAV.mass) * dT_dVa(mav, delta_trim, Va_trim)
+    a_V2 = (1/MAV.mass) * dT_ddelta_t(mav, delta_trim, Va_trim)
     a_V3 = MAV.gravity * np.cos(theta_trim - alpha_trim)
 
     return Va_trim, alpha_trim, theta_trim, a_phi1, a_phi2, a_theta1, a_theta2, a_theta3, a_V1, a_V2, a_V3
@@ -129,52 +129,24 @@ def df_dx(mav, x_euler, delta):
     f_at_x = f_euler(mav, x_euler, delta)
     for i in range(0,12):
         x_eps = np.copy(x_euler)
-        print(x_euler)
         x_eps[i] += eps
         f_at_x_eps = f_euler(mav, x_eps, delta)
         df_dxi = (f_at_x_eps - f_at_x) / eps
         A[:, i] = df_dxi [:]
     return A
 
-# def df_du(mav, x_euler, delta):
-#     eps = 0.01
-#     B = np.zeros((12, 4))  # 12 states, 4 control inputs (aileron, elevator, rudder, throttle)
-#     f_at_x = f_euler(mav, x_euler, delta)
-
-#     for i in range(4):
-#         delta_eps = MsgDelta(
-#             aileron=delta.aileron,
-#             elevator=delta.elevator,
-#             rudder=delta.rudder,
-#             throttle=delta.throttle,
-#         )
-
-#         # Apply perturbation to the i-th control input
-#         if i == 0:
-#             delta_eps.aileron += eps
-#         elif i == 1:
-#             delta_eps.elevator += eps
-#         elif i == 2:
-#             delta_eps.rudder += eps
-#         elif i == 3:
-#             delta_eps.throttle += eps
-
-#         f_at_x_eps = f_euler(mav, x_euler, delta_eps)
-#         B[:, i] = ((f_at_x_eps - f_at_x) / eps)
-
-#     return B
-
 def df_du(mav, x_euler, delta):
     # take partial of f_quat with respect to delta
     eps = .01  # deviation
     B = np.zeros((12, 4))  # Jacobian of f wrt x
-    f_at_x = f_euler(mav, x_euler, delta)
+    f_at_u = f_euler(mav, x_euler, delta)
     for i in range(0, 4):
-        u_eps = np.copy(MsgDelta.to_array(delta))
-        u_eps[i][0] += eps  # add eps to the ith state
-        f_at_x_eps = f_euler(mav, x_euler, delta)
-        df_dxi = (f_at_x_eps - f_at_x) / eps
-        B[:, i] = df_dxi[:]
+        u_eps = np.array([delta.elevator, delta.aileron, delta.rudder, delta.throttle])
+        print(u_eps)
+        u_eps[i] += eps  # add eps to the ith state
+        f_at_u_eps = f_euler(mav, x_euler, u_eps)
+        df_dui = (f_at_u_eps - f_at_u) / eps
+        B[:, i] = df_dui[:]
     return B
 
 def dT_dVa(mav, Va, delta_t):
