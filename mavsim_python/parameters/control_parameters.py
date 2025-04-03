@@ -13,14 +13,14 @@ sigma = 0  # low pass filter gain for derivative
 # get transfer function data for delta_a to phi
 wn_roll = 0
 zeta_roll = 0
-roll_kp = 0
+roll_kp = 4
 roll_kd = 0
 
 #----------course loop-------------
 wn_course = 0
 zeta_course = 0
-course_kp = 0
-course_ki = 0
+course_kp = 4
+course_ki = 0.1
 
 #----------yaw damper-------------
 yaw_damper_p_wo = 0
