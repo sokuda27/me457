@@ -15,7 +15,7 @@ sigma = 0.005  # low pass filter gain for derivative
 
 #----------roll loop-------------
 # get transfer function data for delta_a to phi
-wn_roll = 20 # error in roll when aileron saturates
+wn_roll = 22 # error in roll when aileron saturates
 zeta_roll = 0.707 # damping ratio for roll attitude loop
 roll_kp = wn_roll**2/TF.a_phi2
 roll_kd = (2.0 * zeta_roll * wn_roll - TF.a_phi1) / TF.a_phi2
