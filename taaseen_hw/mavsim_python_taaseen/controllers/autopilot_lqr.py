@@ -64,10 +64,45 @@ class Autopilot:
 
     def update(self, cmd, state):
         # lateral autopilot
+        errorAirspeed = state.Va - cmd.airspeed_command
+        chi_c = wrap(cmd.course_command, state.chi)
+        errorCourse = saturate(state.chi - chi_c, -radians(15), radians(15))
+        self.integatorCourse = self.integratorCourse + (self.Ts/2) * (errorCourse + self.errorCourseD1)
+        self.errorCourseD1 = errorCourse
+        xLat = array([[errorAirspeed * sin(state.beta)], # v
+                    [state.p],
+                    [state.r],
+                    [state.phi],
+                    [errorCourse],
+                    [self.integratorCourse]])
 
-
+        tmp = -self.Klat @ xLat
+        delta_a = saturate(tmp.item(0), -radians(30), radians(30))
+        delta_r = saturate(tmp.item(1), -radians(30), radians(30))
+        
         # longitudinal autopilot
+        altitude_c = saturate(cmd.altitude_command,
+                    state.altitude - 0.2*AP.altitude_zone,
+                    state.altitude + 0.2*AP.altitude_zone)
 
+        errorAltitude = state.altitude - altitude_c
+        self.integatorAltitude = self.integratorAltitude + (self.Ts /2) * (errorAltitude + self.errorAltitudeD1)
+        
+        self.errorAltitudeD1 = errorAltitude
+        self.integatorAirspeed = self.integratorAirspeed + (self.Ts/2) * (errorAirspeed + self.errorAirspeedD1)
+
+        self.errorAirspeedD1 = errorAirspeed
+        xLon = array ([[errorAirspeed * cos(state.alpha)], # u
+                    [errorAirspeed * sin(state.alpha)], # w
+                    [state.q],
+                    [state.theta],
+                    [errorAltitude],
+                    [self.integratorAltitude],
+                    [self.integratorAirspeed]])
+
+        tmp = -self.Klon @ xLon
+        delta_e = saturate(tmp.item(0), -radians(30), radians(30))
+        delta_t = saturate(tmp.item(1), 0.0, 1.0)
 
         # construct control outputs and commanded states
         delta = MsgDelta(elevator=0,
@@ -80,4 +115,3 @@ class Autopilot:
         self.commanded_state.theta = 0
         self.commanded_state.chi = 0
         return delta, self.commanded_state
-
