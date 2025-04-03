@@ -1,7 +1,7 @@
 from plotter import Plotter
 import random
 import numpy as np
-from PyQt5.QtWidgets import QApplication, QWidget  
+from PyQt6.QtWidgets import QApplication, QWidget  
 import sys
 
 p = Plotter(QApplication(sys.argv), 3)
