@@ -47,7 +47,7 @@ class Autopilot:
                     axis=0)
         BBlat = concatenate((M.B_lat, zeros((1,2))), axis=0)
         Qlat = diag([0.001, 0.01, 0.1, 100, 1, 100]) # v, p, r, phi, chi, intChi
-        Rlat = diag([1, 1]) # a, r
+        Rlat = diag([3, 3]) # a, r
         Plat = solve_continuous_are(AAlat, BBlat, Qlat, Rlat)
         # Plat = Plon = np.zeros((6,6))
         self.Klat = inv(Rlat) @ BBlat.T @ Plat
@@ -58,8 +58,8 @@ class Autopilot:
                     concatenate((CrLon, zeros((2,2))), axis=1)),
                     axis=0)
         BBlon = concatenate((M.B_lon, zeros((2, 2))), axis=0)
-        Qlon = diag([10, 10, 0.001, 0.01, 10, 100, 1000]) # u, w, q, theta, h, intH, intVa
-        Rlon = diag([1, 1])  # e, t
+        Qlon = diag([10, 10, 0.001, 0.01, 10, 100, 100]) # u, w, q, theta, h, intH, intVa
+        Rlon = diag([3, 3])  # e, t
         Plon = solve_continuous_are(AAlon, BBlon, Qlon, Rlon)
         # Plon = np.zeros((7,7))
         self.Klon = inv(Rlon) @ BBlon.T @ Plon
