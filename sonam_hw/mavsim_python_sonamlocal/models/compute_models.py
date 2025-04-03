@@ -22,6 +22,8 @@ def compute_model(mav, trim_state, trim_input):
     Va_trim, alpha_trim, theta_trim, a_phi1, a_phi2, a_theta1, a_theta2, a_theta3, \
     a_V1, a_V2, a_V3 = compute_tf_model(mav, trim_state, trim_input)
 
+    print("this is def running")
+
     # write transfer function gains to file
     file = open('models/model_coef.py', 'w')
     file.write('import numpy as np\n')
