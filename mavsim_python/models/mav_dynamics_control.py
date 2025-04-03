@@ -183,7 +183,7 @@ class MavDynamics(MavDynamicsForces):
         b = ((rho * (d_prop ** 4) * cq1 * self._Va) / (2 * np.pi)) + (kq **2 / R)
         c = (rho * (d_prop ** 3) * cq2 * self._Va ** 2) + (kq * io) - (kq * V_in / R)
         Omega_p = (-b + (b ** 2 - 4 * a * c)**0.5) / (2.0 * a)
-        J = 2 * np.pi * self._Va / (Omega_p * d_prop)
+        J = 2 * np.pi * Va / (Omega_p * d_prop)
         # thrust and torque due to propeller
         ct_func = ct2 * J ** 2 + ct1 * J + ct0
         cq_func = cq2 * J ** 2 + cq1 * J + cqo
