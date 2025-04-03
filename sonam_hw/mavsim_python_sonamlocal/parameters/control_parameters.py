@@ -1,5 +1,5 @@
 import numpy as np
-import design_projects.chap05.model_coef as TF
+import models.model_coef as TF
 import parameters.aerosonde_parameters as MAV
 
 
@@ -13,14 +13,14 @@ sigma = 0  # low pass filter gain for derivative
 # get transfer function data for delta_a to phi
 wn_roll = 0
 zeta_roll = 0
-roll_kp = 0
+roll_kp = 4
 roll_kd = 0
 
 #----------course loop-------------
 wn_course = 0
 zeta_course = 0
-course_kp = 0
-course_ki = 0
+course_kp = 4
+course_ki = 1
 
 #----------yaw damper-------------
 yaw_damper_p_wo = 0

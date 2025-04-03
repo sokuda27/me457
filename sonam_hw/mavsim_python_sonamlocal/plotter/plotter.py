@@ -1,5 +1,8 @@
 import pyqtgraph as pg
 import time
+import numpy as np
+
+
 
 class Plotter():
     def __init__(self, app, plots_per_row, window_width=1280,
@@ -90,8 +93,11 @@ class Plotter():
             num_data_sets = len(self._data_lines_list[plot_index])
             for dataset_index in range(num_data_sets):
                 self._data_lines_list[plot_index][dataset_index].setData(
-                    self._xdata_list[plot_index][dataset_index],
-                    self._ydata_list[plot_index][dataset_index])
+                    #self._xdata_list[plot_index][dataset_index],
+                    #self._ydata_list[plot_index][dataset_index])
+
+                    np.array(self._xdata_list[plot_index][dataset_index]).flatten(),
+                    np.array(self._ydata_list[plot_index][dataset_index]).flatten())
     
     def process_app(self, sleep_time = 0):
         self._app.processEvents()
