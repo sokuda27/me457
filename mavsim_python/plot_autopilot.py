@@ -37,17 +37,21 @@ course_command = Signals(dc_offset=np.radians(180),
                          frequency=0.015)
 
 sim_time = SIM.start_time
-end_time = 60
+end_time = 30
 
 roll_hold = []
+pitch_hold = []
+yaw_hold = []
 course_hold = []
-sideslip_hold = []
+course_command_plot = []
+
 
 while sim_time < end_time:
 
     # -------autopilot commands-------------
-    commands.airspeed_command = Va_command.step(sim_time)
+    # commands.airspeed_command = Va_command.step(sim_time)
     commands.course_command = course_command.step(sim_time)
+    course_command_plot.append(course_command.step(sim_time))
     # commands.altitude_command = altitude_command.square(sim_time)
 
     # -------autopilot-------------
@@ -58,30 +62,34 @@ while sim_time < end_time:
     current_wind = wind.update()  # get the new wind vector
     mav.update(delta, current_wind)  # propagate the MAV dynamics
 
-    euler = euler_state(mav._state[0:13])
-
-    roll_hold.append(euler.item(6))
-    course_hold.append(np.arctan(euler.item(3)/euler.item(4)))
-    sideslip_hold.append(np.arctan(euler.item(4)/np.sqrt((euler.item(5)**2 + euler.item(3)**2))))
+    roll_hold.append(mav.true_state.phi)
+    pitch_hold.append(mav.true_state.theta)
+    yaw_hold.append(mav.true_state.psi)
+    course_hold.append(mav.true_state.chi)
 
     # -------increment time-------------
     sim_time += SIM.ts_simulation
     # time.sleep(0.002) # slow down the simulation for visualization
 
-    print("running")
+fig, axs = plt.subplots(1, 3, constrained_layout=True, figsize=(15,5))
 
-fig, axs = plt.subplots(1, 3, constrained_layout=True, figsize=(15,5)) 
-axs[0].plot(roll_hold)
+axs[0].plot(course_hold)
+axs[0].plot(course_command_plot)
 axs[0].set_xlabel('Time (s)')
 axs[0].set_ylabel('roll hold')
+axs[0].legend()
 
-axs[1].plot(course_hold)
-axs[1].set_xlabel('Time (s)')
-axs[1].set_ylabel('course hold')
+# axs[0].plot(roll_hold)
+# axs[0].set_xlabel('Time (s)')
+# axs[0].set_ylabel('roll hold')
 
-# axs[2].plot(sideslip_hold)
+# axs[1].plot(pitch_hold)
+# axs[1].set_xlabel('Time (s)')
+# axs[1].set_ylabel('pitch hold')
+
+# axs[2].plot(yaw_hold)
 # axs[2].set_xlabel('Time (s)')
-# axs[2].set_ylabel('sideslip')
+# axs[2].set_ylabel('yaw hold')
 
 fig.suptitle('Position graphs', fontsize=16)
 plt.show()

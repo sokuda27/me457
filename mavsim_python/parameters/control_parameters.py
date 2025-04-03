@@ -20,7 +20,7 @@ roll_kd = 0
 wn_course = 0
 zeta_course = 0
 course_kp = 4
-course_ki = 0.1
+course_ki = 1
 
 #----------yaw damper-------------
 yaw_damper_p_wo = 0
