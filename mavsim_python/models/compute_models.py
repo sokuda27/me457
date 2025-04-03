@@ -6,6 +6,10 @@ compute_ss_model
 """
 import numpy as np
 from scipy.optimize import minimize
+import os, sys
+# insert parent directory at beginning of python search path
+from pathlib import Path
+sys.path.insert(0,os.fspath(Path(__file__).parents[1]))
 from tools.rotations import euler_to_quaternion, quaternion_to_euler
 import parameters.aerosonde_parameters as MAV
 from parameters.simulation_parameters import ts_simulation as Ts
@@ -180,9 +184,9 @@ def quaternion_state(x_euler):
     e = euler_to_quaternion(phi, theta, psi)
 
     x_quat = np.zeros((13,1)) 
-    x_quat[:6] = x_euler[:6]
+    x_quat[:6] = x_euler[:6].reshape(6,1)
     x_quat[6:10] = e
-    x_quat[10:] = x_euler[9:]
+    x_quat[10:] = x_euler[9:].reshape(3,1)
     return x_quat
 
 def f_euler(mav, x_euler, delta):
@@ -217,18 +221,17 @@ def df_dx(mav, x_euler, delta):
         A[:, i] = df_dxi [:]
     return A
 
-
 def df_du(mav, x_euler, delta):
     # take partial of f_euler with respect to input
     eps = .01  # deviation
     B = np.zeros((12, 4))  # Jacobian of f wrt x
-    f_at_x = f_euler(mav, x_euler, delta)
+    f_at_u = f_euler(mav, x_euler, delta)
     for i in range(0, 4):
         u_eps = np.copy(MsgDelta.to_array(delta))
-        u_eps[i][0] += eps  # add eps to the ith state
-        f_at_x_eps = f_euler(mav, x_euler, delta)
-        df_dxi = (f_at_x_eps - f_at_x) / eps
-        B[:, i] = df_dxi[:]
+        u_eps[i] += eps  # add eps to the ith state
+        f_at_u_eps = f_euler(mav, x_euler, u_eps)
+        df_dui = (f_at_u_eps - f_at_u) / eps
+        B[:, i] = df_dui[:]
     return B
 
 
