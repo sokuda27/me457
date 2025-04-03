@@ -49,7 +49,7 @@ class Autopilot:
         Qlat = diag([0.001, 0.01, 0.1, 100, 1, 100]) # v, p, r, phi, chi, intChi
         Rlat = diag([1, 1]) # a, r
         Plat = solve_continuous_are(AAlat, BBlat, Qlat, Rlat)
-        Plat = Plon = np.zeros((6,6))
+        # Plat = Plon = np.zeros((6,6))
         self.Klat = inv(Rlat) @ BBlat.T @ Plat
         # self.Klat = np.zeros((2,6))
         CrLon = array([[0, 0, 0, 1, 0], [1/AP.Va0, 1/AP.Va0, 0, 0, 0]])
@@ -60,8 +60,8 @@ class Autopilot:
         BBlon = concatenate((M.B_lon, zeros((2, 2))), axis=0)
         Qlon = diag([10, 10, 0.001, 0.01, 10, 100, 1000]) # u, w, q, theta, h, intH, intVa
         Rlon = diag([1, 1])  # e, t
-        # Plon = solve_continuous_are(AAlon, BBlon, Qlon, Rlon)
-        Plon = np.zeros((7,7))
+        Plon = solve_continuous_are(AAlon, BBlon, Qlon, Rlon)
+        # Plon = np.zeros((7,7))
         self.Klon = inv(Rlon) @ BBlon.T @ Plon
         # self.Klon = np.zeros((2,7))
         self.commanded_state = MsgState()
