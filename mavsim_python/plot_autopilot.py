@@ -10,7 +10,7 @@ from tools.rotations import euler_to_quaternion
 from tools.signals import Signals
 from models.mav_dynamics_control import MavDynamics
 from models.wind_simulation import WindSimulation
-from controllers.autopilot import Autopilot
+from controllers.autopilot_lqr import Autopilot
 from models.compute_models import compute_model
 # from controllers.autopilot_lqr import Autopilot
 import time
@@ -54,7 +54,7 @@ altitude_hold = []
 altitude_command_plot = []
 
 trim_state_in, trim_input_in = compute_trim(mav, 25, 0)
-compute_model(mav, trim_state_in, trim_input_in)
+hello = compute_model(mav, trim_state_in, trim_input_in)
 
 while sim_time < end_time:
 

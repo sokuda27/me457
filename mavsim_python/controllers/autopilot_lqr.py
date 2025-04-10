@@ -52,18 +52,25 @@ class Autopilot:
         # Plat = Plon = np.zeros((6,6))
         self.Klat = inv(Rlat) @ BBlat.T @ Plat
         # self.Klat = np.zeros((2,6))
-        CrLon = array([[0, 0, 0, 1, 0], [1/AP.Va0, 1/AP.Va0, 0, 0, 0]])
+        CrLon = array([[0, 0, 0, 0, 1.0], [1/AP.Va0, 1/AP.Va0, 0, 0, 0]])
         AAlon = concatenate((
                     concatenate((M.A_lon, zeros((5,2))), axis=1),
                     concatenate((CrLon, zeros((2,2))), axis=1)),
                     axis=0)
         BBlon = concatenate((M.B_lon, zeros((2, 2))), axis=0)
-        Qlon = diag([10, 10, 0.001, 0.01, 10, 100, 100]) # u, w, q, theta, h, intH, intVa
-        Rlon = diag([3, 3])  # e, t
+        Qlon = diag([10, 10, 0.001, 0.01, 100, 10, 10]) # u, w, q, theta, h, intH, intVa
+        Rlon = diag([1, 1])  # e, t
+
+        print(AAlon)
+        print(BBlon)
+        print(Qlon)
+        print(Rlon)
+
         Plon = solve_continuous_are(AAlon, BBlon, Qlon, Rlon)
         # Plon = np.zeros((7,7))
         self.Klon = inv(Rlon) @ BBlon.T @ Plon
         # self.Klon = np.zeros((2,7))
+
         self.commanded_state = MsgState()
 
     def update(self, cmd, state):
