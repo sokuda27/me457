@@ -115,14 +115,15 @@ class Observer:
     def update(self, measurement: MsgSensors) -> MsgState:
         ##### TODO #####
         # estimates for p, q, r are low pass filter of gyro minus bias estimate
-        self.estimated_state.p = 
-        self.estimated_state.q = 
-        self.estimated_state.r = 
+        self.estimated_state.p = self.lpf_gyro_x.update(measurement.gyro_x)
+        self.estimated_state.q = self.lpf_gyro_y.update(measurement.gyro_y)
+        self.estimated_state.r = self.lpf_gyro_z.update(measurement.gyro_z)
         # invert sensor model to get altitude and airspeed
-        abs_pressure = 
-        diff_pressure = 
-        self.estimated_state.altitude = 
-        self.estimated_state.Va = 
+        abs_pressure = self.lpf_abs.update(measurement.abs_pressure)
+        diff_pressure = self.lpf_diff.update(measurement.diff_pressure)
+        self.estimated_state.altitude = np.log(abs_pressure / diff_pressure)
+        self.estimated_state.Va = np.sqrt(2 * (abs_pressure - diff_pressure))
+        
         # estimate phi and theta with ekf
         u_attitude=np.array([
                 [self.estimated_state.p],
@@ -201,7 +202,10 @@ class Observer:
                 u = [p, q, r, Va].T
         '''
         ##### TODO #####
-        xdot =
+        xdot = np.array([
+            [u[0] + u[1] * np.sin(x[1])],
+            [u[2] + u[1] * np.cos(x[0])],
+        ])
         return xdot
 
     def h_accel(self, x: np.ndarray, u: np.ndarray)->np.ndarray:
@@ -211,7 +215,11 @@ class Observer:
                 u = [p, q, r, Va].T
         '''
         ##### TODO #####
-        y = 
+        y = np.array([
+            [u[0] * np.cos(x[1])],
+            [u[1] * np.sin(x[0])],
+            [u[2] * np.cos(x[1])],
+        ])
         return y
 
     def f_smooth(self, x, u):
@@ -221,7 +229,15 @@ class Observer:
                 u = [p, q, r, Va, phi, theta].T
         '''
         ##### TODO #####        
-        xdot = 
+        xdot = np.array([
+            [u[0] * np.cos(x[3])],
+            [u[1] * np.sin(x[3])],
+            [u[2]],
+            [u[3]],
+            [u[4]],
+            [u[5]],
+            [u[6]],
+        ])
         return xdot
 
     def h_pseudo(self, x: np.ndarray, u: np.ndarray)->np.ndarray:
@@ -233,7 +249,12 @@ class Observer:
                 y = [pn, pe, Vg, chi]
         '''
         ##### TODO #####         
-        y = 
+        y = np.array([
+            [x[0]],
+            [x[1]],
+            [x[2]],
+            [x[3]],
+            ])
         return y
 
     def h_gps(self, x: np.ndarray, u: np.ndarray)->np.ndarray:
@@ -245,7 +266,13 @@ class Observer:
                 y = [pn, pe, Vg, chi]
         '''
         ##### TODO #####         
-        y = 
+        ##### TODO #####
+        y = np.array([
+            [x[0]],
+            [x[1]],
+            [x[2]],
+            [x[3]],
+            ])
         return y
 
 
