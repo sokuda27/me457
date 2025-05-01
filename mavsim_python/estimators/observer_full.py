@@ -94,8 +94,8 @@ class Observer:
             SENSOR.gps_course_sigma**2
         ])
         self.R_pseudo = np.diag([
-                    (0.0)**2,  # pseudo measurement #1         ##### TODO #####
-                    (0.0)**2,  # pseudo measurement #2
+                    (0.1)**2,  # pseudo measurement #1         ##### TODO #####
+                    (0.1)**2,  # pseudo measurement #2
                     ])
         initial_measurements = MsgSensors()
         ##### TODO #####
@@ -180,14 +180,23 @@ class Observer:
     def f(self, x:np.ndarray, u:np.ndarray)->np.ndarray:
         # system dynamics for propagation model: xdot = f(x, u)
         ##### TODO #####
-        # pos   = x[0:3]
+        pos   = x[0:3]
         vel = x[3:6]
         Theta = x[6:9]
         bias = x[9:12]
-        # wind = np.array([[x.item(12), x.item(13), 0]]).T
-        y_gyro = u[0:3]
-        y_accel = u[3:6]
-        xdot = np.concatenate((pos_dot, vel_dot, Theta_dot, bias_dot, wind_dot), axis=0)
+        wind = np.array([[x.item(12), x.item(13), 0]]).T
+
+        gyro = u[0:3]
+        accel = u[3:6]
+        R = euler_to_rotation(Theta.item(0), Theta.item(1), Theta.item(2))
+        pos_dot = R @ vel
+        gravity = np.array([[0], [0], [9.81]])  # assume downward positive gravity
+        vel_dot = accel + R.T @ gravity - cross(gyro - bias) @ vel
+        Theta_dot = S(Theta) @ (gyro - bias)
+        bias_dot = np.zeros((3, 1))
+        wind_dot = np.zeros((3, 1))
+
+        xdot = np.concatenate((pos_dot, vel_dot, Theta_dot, bias_dot, wind_dot[0:2]), axis=0)
         return xdot
 
     def h_analog(self, x:np.ndarray, u:np.ndarray)->np.ndarray:
@@ -197,7 +206,15 @@ class Observer:
         vel_body = x[3:6]
         Theta = x[6:9]
         #bias = x[9:12]
+        wind = np.array([[x.item(12)], [x.item(13)], [0.0]])
     
+        Va_vec = vel_body - wind
+        Va = np.linalg.norm(Va_vec)
+
+        abs_pres = MAV.rho * MAV.gravity * (-pos.item(2))
+        diff_pres = 0.5 * MAV.rho * Va**2
+        sideslip = 0.0
+
         y = np.array([[abs_pres, diff_pres, sideslip]]).T
         return y
 
@@ -207,6 +224,19 @@ class Observer:
         pos = x[0:3]
         vel_body = x[3:6]
         Theta = x[6:9]
+
+        wn = x.item(12)
+        we = x.item(13)
+
+        R = euler_to_rotation(Theta.item(0), Theta.item(1), Theta.item(2))
+        vel_world = R @ vel_body
+
+        Vg_vec = vel_world + np.array([[wn], [we], [0]])
+        Vg = np.linalg.norm(Vg_vec)
+        chi = np.arctan2(Vg_vec.item(1), Vg_vec.item(0))
+        
+        pn = pos.item(0)
+        pe = pos.item(1)
 
         y = np.array([[pn, pe, Vg, chi]]).T
         return y
@@ -218,10 +248,19 @@ class Observer:
         vel_body = x[3:6]
         Theta = x[6:9]
         #bias = x[9:12]
-        
+
+        wn = x.item(12)
+        we = x.item(13)
+
+        R = euler_to_rotation(Theta.item(0), Theta.item(1), Theta.item(2))
+        vel_world = R @ vel_body
+
+        wind_triangle_n = vel_world.item(0) - vel_body.item(0)
+        wind_triangle_e = vel_world.item(1) - vel_body.item(1)
+
         y = np.array([
-            [],  # wind triangle x
-            [],  # wind triangle y
+            [wind_triangle_n],  # wind triangle x
+            [wind_triangle_e],  # wind triangle y
         ])
         return y
 

@@ -33,7 +33,7 @@ wind = WindSimulation(SIM.ts_simulation)
 mav = MavDynamics(SIM.ts_simulation)
 autopilot = Autopilot(SIM.ts_simulation)
 observer = Observer(SIM.ts_simulation)
-viewers = ViewManager(mav=True, 
+viewers = ViewManager(
                       data=True,
                       video=False, video_name='chap8.mp4')
 
