@@ -16,6 +16,7 @@ from tools.wrap import wrap
 import models.model_coef as M
 from message_types.msg_state import MsgState
 from message_types.msg_delta import MsgDelta
+from numpy.linalg import matrix_rank
 
 def saturate(input, low_limit, up_limit):
     if input <= low_limit:
@@ -38,7 +39,7 @@ class Autopilot:
         self.errorAltitudeD1 = 0
         self.errorAirspeedD1 = 0
         # compute LQR gains
-        
+
         #### TODO ######
         CrLat = array([[0, 0, 0, 0, 1]])
         AAlat = concatenate((
@@ -46,10 +47,10 @@ class Autopilot:
                     concatenate((CrLat, zeros((1,1))), axis=1)),
                     axis=0)
         BBlat = concatenate((M.B_lat, zeros((1,2))), axis=0)
-        Qlat = diag([0.001, 0.01, 0.1, 100, 1, 100]) # v, p, r, phi, chi, intChi
+        Qlat = diag([1, 1, 1, 10, 10, 100]) # v, p, r, phi, chi, intChi
         Rlat = diag([1, 1]) # a, r
         Plat = solve_continuous_are(AAlat, BBlat, Qlat, Rlat)
-        Plat = Plon = np.zeros((6,6))
+        # Plat = Plon = np.zeros((6,6))
         self.Klat = inv(Rlat) @ BBlat.T @ Plat
         # self.Klat = np.zeros((2,6))
         CrLon = array([[0, 0, 0, 1, 0], [1/AP.Va0, 1/AP.Va0, 0, 0, 0]])
@@ -58,20 +59,22 @@ class Autopilot:
                     concatenate((CrLon, zeros((2,2))), axis=1)),
                     axis=0)
         BBlon = concatenate((M.B_lon, zeros((2, 2))), axis=0)
-        Qlon = diag([10, 10, 0.001, 0.01, 10, 100, 1000]) # u, w, q, theta, h, intH, intVa
+        Qlon = diag([10, 10, 0.1, 1, 10, 100, 1000]) # u, w, q, theta, h, intH, intVa
         Rlon = diag([1, 1])  # e, t
-        # Plon = solve_continuous_are(AAlon, BBlon, Qlon, Rlon)
-        Plon = np.zeros((7,7))
+        Plon = solve_continuous_are(AAlon, BBlon, Qlon, Rlon)
+        # Plon = np.zeros((7,7))
         self.Klon = inv(Rlon) @ BBlon.T @ Plon
         # self.Klon = np.zeros((2,7))
         self.commanded_state = MsgState()
+
+        
 
     def update(self, cmd, state):
         # lateral autopilot
         errorAirspeed = state.Va - cmd.airspeed_command
         chi_c = wrap(cmd.course_command, state.chi)
         errorCourse = saturate(state.chi - chi_c, -radians(15), radians(15))
-        self.integatorCourse = self.integratorCourse + (self.Ts/2) * (errorCourse + self.errorCourseD1)
+        self.integratorCourse = self.integratorCourse + (self.Ts/2) * (errorCourse + self.errorCourseD1)
         self.errorCourseD1 = errorCourse
         xLat = array([[errorAirspeed * sin(state.beta)], # v
                     [state.p],
@@ -90,10 +93,10 @@ class Autopilot:
                     state.altitude + 0.2*AP.altitude_zone)
 
         errorAltitude = state.altitude - altitude_c
-        self.integatorAltitude = self.integratorAltitude + (self.Ts /2) * (errorAltitude + self.errorAltitudeD1)
+        self.integratorAltitude = self.integratorAltitude + (self.Ts /2) * (errorAltitude + self.errorAltitudeD1)
         
         self.errorAltitudeD1 = errorAltitude
-        self.integatorAirspeed = self.integratorAirspeed + (self.Ts/2) * (errorAirspeed + self.errorAirspeedD1)
+        self.integratorAirspeed = self.integratorAirspeed + (self.Ts/2) * (errorAirspeed + self.errorAirspeedD1)
 
         self.errorAirspeedD1 = errorAirspeed
         xLon = array ([[errorAirspeed * cos(state.alpha)], # u

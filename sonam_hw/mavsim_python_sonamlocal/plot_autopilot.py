@@ -10,9 +10,9 @@ from tools.rotations import euler_to_quaternion
 from tools.signals import Signals
 from models.mav_dynamics_control import MavDynamics
 from models.wind_simulation import WindSimulation
-from controllers.autopilot import Autopilot
+# from controllers.autopilot import Autopilot
 from models.compute_models import compute_model
-# from controllers.autopilot_lqr import Autopilot
+from controllers.autopilot_lqr import Autopilot
 import time
 
 # initialize elements of the architecture
@@ -46,8 +46,11 @@ roll_command_plot = []
 course_hold = []
 course_command_plot = []
 
-trim_state_in, trim_input_in = compute_trim(mav, 25, 0)
-compute_model(mav, trim_state_in, trim_input_in)
+trim_state = np.array([[0.000000, -0.000000, -100.000000, 24.968743, 0.000000, 1.249755, 0.999687, 0.000000, 0.025003, 0.000000, 0.000000, 0.000000, 0.000000]]).T
+trim_input = MsgDelta(elevator=-0.124778,
+                          aileron=0.001836,
+                          rudder=-0.000303,
+                          throttle=0.676752)
 
 while sim_time < end_time:
 
