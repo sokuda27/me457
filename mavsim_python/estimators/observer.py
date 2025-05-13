@@ -105,7 +105,7 @@ class Observer:
                 [measurement.accel_y],
                 [measurement.accel_z],
                 ])
-        xhat_attitude, _=self.attitude_ekf.measurement_update(
+        xhat_attitude, _= self.attitude_ekf.measurement_update(
             y=y_accel, 
             u=u_attitude,
             h=self.h_accel,
