@@ -153,7 +153,7 @@ def f_euler(mav, x_euler, delta):
     x_quat = quaternion_state(x_euler)
     mav._state = x_quat
     mav._update_velocity_data()
-    f = mav._f(x_quat, mav._forcesand_moments(delta))
+    f = mav._f(x_quat, mav._forces_moments(delta))
     f_euler_ = euler_state(f)
     
     eps = 0.001
@@ -218,13 +218,13 @@ def df_du(mav, x_euler, delta):
 def dT_dVa(mav, Va, delta_t):
     # return the derivative of motor thrust with respect to Va
     eps = 0.01
-    T_eps , Q_eps = mav.motor_thrust_torque(Va + eps, delta_t)
-    T, Q = mav.motor_thrust_torque(Va, delta_t)
+    T_eps , Q_eps = mav._motor_thrust_torque(Va + eps, delta_t)
+    T, Q = mav._motor_thrust_torque(Va, delta_t)
     return (T_eps - T)/eps
 
 def dT_ddelta_t(mav, Va, delta_t):
     # return the derivative of motor thrust with respect to delta_t
     eps = 0.01
-    T_eps , Q_eps = mav.motor_thrust_torque(Va, delta_t + eps)
-    T, Q = mav.motor_thrust_torque(Va, delta_t)
+    T_eps , Q_eps = mav._motor_thrust_torque(Va, delta_t + eps)
+    T, Q = mav._motor_thrust_torque(Va, delta_t)
     return (T_eps - T)/eps
