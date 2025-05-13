@@ -76,7 +76,7 @@ class ExtendedKalmanFilterContinuousDiscrete:
         self.N = N
         self.Ts = (Ts / float(N))
 
-    def propagate_model(self, u: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def propagate_model(self, u: np.ndarray) -> tuple:
         '''
             model propagation
                 - solve xhatdot=f(xhat,u), and Pdot = AP+PA' + Q + G Qu G' between measurements
@@ -91,6 +91,7 @@ class ExtendedKalmanFilterContinuousDiscrete:
             self.xhat = self.xhat + self.Ts * self.f(self.xhat, u)
             # compute Jacobian of f with respect to x
             A = self.jacobian(self.f, self.xhat, u)
+            print(A.shape)
             # convert to discrete time models
             A_d = np.eye(self.n) + self.Ts * A + ((self.Ts ** 2)/2.) * A @ A
             # compute Jacobian of f with respect to u
@@ -103,7 +104,7 @@ class ExtendedKalmanFilterContinuousDiscrete:
                            y: np.ndarray, 
                            u: np.ndarray, 
                            h: Callable, 
-                           R: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+                           R: np.ndarray) -> tuple:
         '''
             Measurement update
                 update the state xhat and covarance P when a measurement is received
@@ -223,7 +224,7 @@ class KalmanFilterDiscrete:
         self.xhat = xhat0  
         self.P = P0
 
-    def update(self, y: np.ndarray, u: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def update(self, y: np.ndarray, u: np.ndarray) -> tuple:
         '''
             filter update
                 propages xhat and P and performs a measurement update
