@@ -35,7 +35,10 @@ class Observer:
             f=self.f_attitude,
             Q=np.diag([np.radians(0.5)**2, np.radians(0.5)**2]),  # (2x2)
             P0=np.diag([np.radians(5.0)**2, np.radians(5.0)**2]),  # (2x2)
-            xhat0=np.array([[0.0], [0.0]]),  # (2x1)
+            xhat0=np.array([
+                [0.0], 
+                [0.0]
+            ]),  # (2x1)
             Qu=np.diag([
                 SENSOR.gyro_sigma**2,
                 SENSOR.gyro_sigma**2,
@@ -44,7 +47,7 @@ class Observer:
             ]),  # (4x4)
             Ts=ts,
             N=5
-            )
+        )
         # ekf for pn, pe, Vg, chi, wn, we, psi
         self.position_ekf = ExtendedKalmanFilterContinuousDiscrete(
             f=self.f_smooth, 

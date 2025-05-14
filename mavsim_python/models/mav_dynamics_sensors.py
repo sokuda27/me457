@@ -14,6 +14,8 @@ import parameters.aerosonde_parameters as MAV
 import parameters.sensor_parameters as SENSOR
 from models.mav_dynamics_control import MavDynamics as MavDynamicsNoSensors
 from tools.rotations import quaternion_to_rotation, quaternion_to_euler, euler_to_rotation
+from math import cos
+from math import sin
 
 class MavDynamics(MavDynamicsNoSensors):
     def __init__(self, Ts):
@@ -29,16 +31,33 @@ class MavDynamics(MavDynamicsNoSensors):
 
     def sensors(self):
         "Return value of sensors on MAV: gyros, accels, absolute_pressure, dynamic_pressure, GPS"
-       
+        state = self.true_state
+        pn = state.north
+        pe = state.east
+        h = -self._state.item(2)
+        #pd = h
+        p = self._state.item(10)
+        q = self._state.item(11)
+        r = self._state.item(12)
+        phi = state.phi
+        theta = state.theta
+        psi = state.psi
+        g = MAV.gravity
+        fx = self._forces[0]
+        fy = self._forces[1]
+        fz = self._forces[2]
+        Va = state.Va
         # simulate rate gyros(units are rad / sec)
-        self._sensors.gyro_x = 0
-        self._sensors.gyro_y = 0
-        self._sensors.gyro_z = 0
+        self._sensors.gyro_x = p + SENSOR.gyro_x_bias + np.random.normal(0, SENSOR.gyro_sigma)
+        self._sensors.gyro_y = q + SENSOR.gyro_y_bias + np.random.normal(0, SENSOR.gyro_sigma)
+        self._sensors.gyro_z = r + SENSOR.gyro_z_bias + np.random.normal(0, SENSOR.gyro_sigma)
 
         # simulate accelerometers(units of g)
-        self._sensors.accel_x = 0
-        self._sensors.accel_y = 0
-        self._sensors.accel_z = 0
+        self._sensors.accel_x = (fx / MAV.mass + g * sin(theta) + np.random.normal(0, SENSOR.accel_sigma)).item(0)
+        self._sensors.accel_y = (
+                    fy / MAV.mass - g * cos(theta) * sin(phi) + np.random.normal(0, SENSOR.accel_sigma)).item(0)
+        self._sensors.accel_z = (
+                    fz / MAV.mass - g * cos(theta) * cos(phi) + np.random.normal(0, SENSOR.accel_sigma)).item(0)
 
         # simulate magnetometers
         # magnetic field in provo has magnetic declination of 12.5 degrees
@@ -48,19 +67,29 @@ class MavDynamics(MavDynamicsNoSensors):
         self._sensors.mag_z = 0
 
         # simulate pressure sensors
-        self._sensors.abs_pressure = 0
-        self._sensors.diff_pressure = 0
+        h_AGL = h
+        self._sensors.abs_pressure = MAV.rho * MAV.gravity * h_AGL + np.random.normal(0,
+                                                                                                         SENSOR.abs_pres_sigma)
+        self._sensors.diff_pressure = MAV.rho * self._Va ** 2 / 2 + np.random.normal(0,
+                                                                                                      SENSOR.diff_pres_sigma)
         
         # simulate GPS sensor
         if self._t_gps >= SENSOR.ts_gps:
-            self._gps_eta_n = 0
-            self._gps_eta_e = 0
-            self._gps_eta_h = 0
-            self._sensors.gps_n = 0
-            self._sensors.gps_e = 0
-            self._sensors.gps_h = 0
-            self._sensors.gps_Vg = 0
-            self._sensors.gps_course = 0
+            self._gps_eta_n = np.exp(-SENSOR.gps_k * SENSOR.ts_gps) * self._gps_eta_n + np.random.normal(0,
+                                                                                                         SENSOR.gps_n_sigma)
+            self._gps_eta_e = np.exp(-SENSOR.gps_k * SENSOR.ts_gps) * self._gps_eta_e + np.random.normal(0,
+                                                                                                         SENSOR.gps_e_sigma)
+            self._gps_eta_h = np.exp(-SENSOR.gps_k * SENSOR.ts_gps) * self._gps_eta_h + np.random.normal(0,
+                                                                                                         SENSOR.gps_h_sigma)
+            self._sensors.gps_n = pn + self._gps_eta_n
+            self._sensors.gps_e = pe + self._gps_eta_e
+            self._sensors.gps_h = -self._state.item(2) + self._gps_eta_h
+            wn = state.wn
+            we = state.we
+            V1 = Va * np.sin(psi) + we
+            V2 = Va * np.cos(psi) + wn
+            self._sensors.gps_Vg = (np.sqrt(V1 ** 2 + V2 ** 2) + np.random.normal(0, SENSOR.gps_Vg_sigma)).item(0)
+            self._sensors.gps_course = (np.arctan2(V1, V2) + np.random.normal(0, SENSOR.gps_course_sigma)).item(0)
             self._t_gps = 0.
         else:
             self._t_gps += self._ts_simulation
