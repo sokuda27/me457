@@ -1,4 +1,4 @@
-from plotter import Plotter
+from plotter.plotter import Plotter
 import random
 import numpy as np
 from PyQt5.QtWidgets import QApplication, QWidget  

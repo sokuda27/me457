@@ -56,6 +56,8 @@ roll_command_plot = []
 # yaw_hold = []
 course_hold = []
 course_command_plot = []
+alt_hold = []
+alt_command_plot = []
 
 # trim_state = np.array([[0.000000, -0.000000, -100.000000, 24.968743, 0.000000, 1.249755, 0.999687, 0.000000, 0.025003, 0.000000, 0.000000, 0.000000, 0.000000]]).T
 # trim_input = MsgDelta(elevator=-0.124778,
@@ -71,12 +73,14 @@ while sim_time < end_time:
     # -------autopilot commands-------------
     commands.airspeed_command = Va_command.step(sim_time)
     commands.course_command = course_command.step(sim_time)
+    commands.altitude_command = altitude_command.step(sim_time)
     course_command_plot.append(course_command.step(sim_time))
+    alt_command_plot.append(commands.altitude_command)
 
     # -------autopilot-------------
-    measurements = mav._state
+    measurements = mav._state   
     estimated_state = mav.true_state  # uses true states in the control
-    print(quaternion_to_euler(measurements))
+    # print(quaternion_to_euler(measurements))
     delta, commanded_state = autopilot.update(commands, estimated_state)
     roll_command_plot.append(commanded_state.phi)
 
@@ -88,6 +92,7 @@ while sim_time < end_time:
     # pitch_hold.append(mav.true_state.theta)
     # yaw_hold.append(mav.true_state.psi)
     course_hold.append(mav.true_state.chi)
+    alt_hold.append(mav.true_state.altitude)
 
     # -------increment time-------------
     sim_time += SIM.ts_simulation
@@ -106,6 +111,12 @@ axs[1].plot(roll_command_plot)
 axs[1].set_xlabel('Time (s)')
 axs[1].set_ylabel('roll hold')
 axs[1].legend()
+
+axs[2].plot(alt_hold)
+axs[2].plot(alt_command_plot)
+axs[2].set_xlabel('Time (s)')
+axs[2].set_ylabel('alt hold')
+axs[2].legend()
 
 # axs[0].plot(roll_hold)
 # axs[0].set_xlabel('Time (s)')
