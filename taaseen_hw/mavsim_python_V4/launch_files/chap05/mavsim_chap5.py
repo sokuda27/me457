@@ -28,7 +28,7 @@ import time
 # initialize elements of the architecture
 wind = WindSimulation(SIM.ts_simulation)
 mav = MavDynamics(SIM.ts_simulation)
-viewers = ViewManager(mav=True, 
+viewers = ViewManager(#mav=True, 
                       data=True,
                       video=False, video_name='chap5.mp4')
 

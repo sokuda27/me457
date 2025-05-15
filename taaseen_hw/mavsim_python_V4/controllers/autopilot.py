@@ -5,7 +5,7 @@ autopilot block for mavsim_python
         2/6/2019 - RWB
 """
 import numpy as np
-import parameters.control_parameters as AP
+import parameters.control_parameters_taaseen as AP
 from tools.transfer_function import TransferFunction
 from tools.wrap import wrap
 from controllers.pi_control import PIControl
@@ -32,13 +32,13 @@ class Autopilot:
                         num=np.array([[AP.yaw_damper_kr, 0]]),
                         den=np.array([[1, AP.yaw_damper_p_wo]]),
                         Ts=ts_control)
-        self.yaw_damper = TFControl(
-                        k=AP.yaw_damper_kr,
-                        n0=0.0,
-                        n1=1.0,
-                        d0=AP.yaw_damper_p_wo,
-                        d1=1,
-                        Ts=ts_control)
+        # self.yaw_damper = TFControl(
+        #                 k=AP.yaw_damper_kr,
+        #                 n0=0.0,
+        #                 n1=1.0,
+        #                 d0=AP.yaw_damper_p_wo,
+        #                 d1=1,
+        #                 Ts=ts_control)
 
         # instantiate longitudinal controllers
         self.pitch_from_elevator = PDControlWithRate(
