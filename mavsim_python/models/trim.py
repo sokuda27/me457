@@ -20,10 +20,10 @@ def compute_trim(mav, Va, gamma):
                    [Va],  # u
                    [0.], # v
                    [0.], # w
-                   [e0[0]],  # e0
-                   [e0[1]],  # e1
-                   [e0[2]],  # e2
-                   [e0[3]],  # e3
+                   [e0.item(0)],  # e0
+                   [e0.item(1)],  # e1
+                   [e0.item(2)],  # e2
+                   [e0.item(3)],  # e3
                    [0.], # p
                    [0.], # q
                    [0.]  # r

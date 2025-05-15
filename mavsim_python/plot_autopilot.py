@@ -11,7 +11,7 @@ from tools.signals import Signals
 from models.mav_dynamics_sensors import MavDynamics
 from models.wind_simulation import WindSimulation
 from controllers.autopilot import Autopilot
-from models.compute_models_old import compute_model
+from models.compute_models import compute_model
 # from controllers.autopilot_lqr import Autopilot
 from estimators.observer import Observer
 import time
@@ -19,6 +19,15 @@ import time
 # initialize elements of the architecture
 wind = WindSimulation(SIM.ts_simulation)
 mav = MavDynamics(SIM.ts_simulation)
+
+# Initialize MAV to nominal state
+mav._state = np.zeros((13, 1))
+mav._Va = 25.0  # desired airspeed
+mav._alpha = 0.0
+mav._beta = 0.0
+mav._wind = np.zeros((6, 1))
+mav._forces = np.zeros((3, 1))
+
 autopilot = Autopilot(SIM.ts_simulation)
 observer = Observer(SIM.ts_simulation)
 
