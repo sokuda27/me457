@@ -8,17 +8,19 @@ import parameters.simulation_parameters as SIM
 from models.trim import compute_trim
 from tools.rotations import euler_to_quaternion
 from tools.signals import Signals
-from models.mav_dynamics_control import MavDynamics
+from models.mav_dynamics_sensors import MavDynamics
 from models.wind_simulation import WindSimulation
 from controllers.autopilot import Autopilot
 from models.compute_models_old import compute_model
 # from controllers.autopilot_lqr import Autopilot
+from estimators.observer import Observer
 import time
 
 # initialize elements of the architecture
 wind = WindSimulation(SIM.ts_simulation)
 mav = MavDynamics(SIM.ts_simulation)
 autopilot = Autopilot(SIM.ts_simulation)
+observer = Observer(SIM.ts_simulation)
 
 # autopilot commands
 from message_types.msg_autopilot import MsgAutopilot
@@ -63,7 +65,9 @@ while sim_time < end_time:
     course_command_plot.append(course_command.step(sim_time))
 
     # -------autopilot-------------
-    estimated_state = mav.true_state  # uses true states in the control
+    measurements = mav.sensors()  # get sensor measurements
+    estimated_state = observer.update(measurements)
+    # estimated_state = mav.true_state  # uses true states in the control
     delta, commanded_state = autopilot.update(commands, estimated_state)
     roll_command_plot.append(commanded_state.phi)
 
