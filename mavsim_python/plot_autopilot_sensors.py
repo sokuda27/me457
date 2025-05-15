@@ -9,16 +9,19 @@ from models.trim import compute_trim
 from tools.rotations import euler_to_quaternion
 from tools.rotations import quaternion_to_euler
 from tools.signals import Signals
-from models.mav_dynamics_control import MavDynamics
+from models.mav_dynamics_control import MavDynamics as mav_true
+from models.mav_dynamics_sensors import MavDynamics
 from models.wind_simulation import WindSimulation
 from controllers.autopilot import Autopilot
 from models.compute_models import compute_model
+# from controllers.autopilot_lqr import Autopilot
 from estimators.observer import Observer
 import time
 
 # initialize elements of the architecture
 wind = WindSimulation(SIM.ts_simulation)
 mav = MavDynamics(SIM.ts_simulation)
+mav_t = mav_true(SIM.ts_simulation)
 
 # Initialize MAV to nominal state
 mav._state = np.zeros((13, 1))
@@ -27,6 +30,14 @@ mav._alpha = 0.0
 mav._beta = 0.0
 mav._wind = np.zeros((6, 1))
 mav._forces = np.zeros((3, 1))
+
+# # Initialize MAV_true to nominal state
+# mav_t._state = np.zeros((13, 1))
+# mav_t._Va = 25.0  # desired airspeed
+# mav_t._alpha = 0.0
+# mav_t._beta = 0.0
+# mav_t._wind = np.zeros((6, 1))
+# mav_t._forces = np.zeros((3, 1))
 
 autopilot = Autopilot(SIM.ts_simulation)
 observer = Observer(SIM.ts_simulation)
@@ -74,14 +85,18 @@ while sim_time < end_time:
     course_command_plot.append(course_command.step(sim_time))
 
     # -------autopilot-------------
-    measurements = mav._state
-    estimated_state = mav.true_state  # uses true states in the control
+    measurements = mav.sensors()  # get sensor measurements
+    estimated_state = observer.update(measurements)
+    # xtrue = quaternion_to_euler(mav_t._state)
+    # print(xtrue)
+    # estimated_state = mav.true_state  # uses true states in the control
     delta, commanded_state = autopilot.update(commands, estimated_state)
     roll_command_plot.append(commanded_state.phi)
 
     # -------physical system-------------
     current_wind = wind.update()  # get the new wind vector
     mav.update(delta, current_wind)  # propagate the MAV dynamics
+    mav_t.update(delta, current_wind)
 
     roll_hold.append(mav.true_state.phi)
     # pitch_hold.append(mav.true_state.theta)
