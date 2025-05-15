@@ -17,6 +17,8 @@ from tools.rotations import quaternion_to_rotation, quaternion_to_euler, euler_t
 from math import cos
 from math import sin
 
+np.random.seed(4)
+
 class MavDynamics(MavDynamicsNoSensors):
     def __init__(self, Ts):
         super().__init__(Ts)
