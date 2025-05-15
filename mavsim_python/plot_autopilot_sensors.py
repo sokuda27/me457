@@ -45,8 +45,8 @@ altitude_command = Signals(dc_offset=100.0,
                            amplitude=20.0,
                            start_time=0.0,
                            frequency=0.02)
-course_command = Signals(dc_offset=np.radians(45),
-                         amplitude=np.radians(45),
+course_command = Signals(dc_offset=0,
+                         amplitude=1,
                          start_time=1.0,
                          frequency=0.015)
 
@@ -56,10 +56,16 @@ end_time = 30
 roll_hold = []
 roll_command_plot = []
 # pitch_hold = []
-# yaw_hold = []
+yaw_hold = []
+yaw_command_plot = []
+
 course_hold = []
 course_hold_test = []
 course_command_plot = []
+va_hold = []
+va_command_plot = []
+altitude_hold = []
+altitude_command_plot = []
 
 # trim_state = np.array([[0.000000, -0.000000, -100.000000, 24.968743, 0.000000, 1.249755, 0.999687, 0.000000, 0.025003, 0.000000, 0.000000, 0.000000, 0.000000]]).T
 # trim_input = MsgDelta(elevator=-0.124778,
@@ -75,7 +81,10 @@ while sim_time < end_time:
     # -------autopilot commands-------------
     commands.airspeed_command = Va_command.step(sim_time)
     commands.course_command = course_command.step(sim_time)
-    course_command_plot.append(course_command.step(sim_time))
+    commands.altitude_command = altitude_command.step(sim_time)
+    course_command_plot.append(commands.course_command)
+    va_command_plot.append(commands.airspeed_command)
+    altitude_command_plot.append(commands.altitude_command)
 
     # -------autopilot-------------
     measurements = mav.sensors()  # get sensor measurements
@@ -87,7 +96,7 @@ while sim_time < end_time:
     # print("TRUE p, q, r:", mav.true_state.p, mav.true_state.q, mav.true_state.r)
     # print("GYRO (p, q, r):", measurements.gyro_x, measurements.gyro_y, measurements.gyro_z)
 
-    # # Position check
+    # Position check
     print("TRUE ned:", mav.true_state.north, mav.true_state.east, mav.true_state.altitude )
     print("GPS:", measurements.gps_n, measurements.gps_e, measurements.gps_h)
     print("est state:", estimated_state.north, estimated_state.east, estimated_state.altitude)
@@ -96,19 +105,27 @@ while sim_time < end_time:
     # print("TRUE chi:", mav.true_state.chi)
     # print("est state:", estimated_state.chi)
 
+    # # Va check
+    # print("TRUE va:", mav.true_state.Va)
+    # print("est state:", estimated_state.Va)
+
     # estimated_state = mav.true_state  # uses true states in the control
     delta, commanded_state = autopilot.update(commands, estimated_state)
     roll_command_plot.append(commanded_state.phi)
+    # yaw_command_plot.append(commanded_state.psi)
 
     # -------physical system-------------
     current_wind = wind.update()  # get the new wind vector
     mav.update(delta, current_wind)  # propagate the MAV dynamics
 
-    roll_hold.append(estimated_state.phi)
+    roll_hold.append(mav.true_state.phi)
     # pitch_hold.append(mav.true_state.theta)
-    # yaw_hold.append(mav.true_state.psi)
-    course_hold.append(estimated_state.chi)
-    course_hold_test.append(mav.true_state.chi)
+    yaw_hold.append(mav.true_state.psi)
+
+    course_hold.append(mav.true_state.chi)
+    # course_hold_test.append(mav.true_state.chi)
+    va_hold.append(mav.true_state.Va)
+    altitude_hold.append(mav.true_state.altitude)
 
     # -------increment time-------------
     sim_time += SIM.ts_simulation
@@ -117,16 +134,22 @@ while sim_time < end_time:
 fig, axs = plt.subplots(1, 3, constrained_layout=True, figsize=(15,5))
 
 axs[0].plot(course_hold)
-axs[0].plot(course_hold_test)
+# axs[0].plot(course_hold_test)
 axs[0].plot(course_command_plot)
 axs[0].set_xlabel('Time (s)')
 axs[0].set_ylabel('course hold')
 axs[0].legend()
 
-axs[1].plot(roll_hold)
-axs[1].plot(roll_command_plot)
+# axs[1].plot(roll_hold)
+# axs[1].plot(roll_command_plot)
+# axs[1].set_xlabel('Time (s)')
+# axs[1].set_ylabel('roll hold')
+# axs[1].legend()
+
+axs[1].plot(va_hold)
+axs[1].plot(va_command_plot)
 axs[1].set_xlabel('Time (s)')
-axs[1].set_ylabel('roll hold')
+axs[1].set_ylabel('va hold')
 axs[1].legend()
 
 # axs[0].plot(roll_hold)
@@ -138,8 +161,15 @@ axs[1].legend()
 # axs[1].set_ylabel('pitch hold')
 
 # axs[2].plot(yaw_hold)
+# axs[2].plot(yaw_command_plot)
 # axs[2].set_xlabel('Time (s)')
 # axs[2].set_ylabel('yaw hold')
+
+axs[2].plot(altitude_hold)
+axs[2].plot(altitude_command_plot)
+axs[2].set_xlabel('Time (s)')
+axs[2].set_ylabel('altitude hold')
+axs[2].legend()
 
 fig.suptitle('Position graphs', fontsize=16)
 plt.show()
