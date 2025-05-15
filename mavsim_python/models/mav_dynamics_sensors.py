@@ -62,6 +62,9 @@ class MavDynamics(MavDynamicsNoSensors):
         # simulate magnetometers
         # magnetic field in provo has magnetic declination of 12.5 degrees
         # and magnetic inclination of 66 degrees
+
+        
+
         self._sensors.mag_x = 0
         self._sensors.mag_y = 0
         self._sensors.mag_z = 0
@@ -123,10 +126,5 @@ class MavDynamics(MavDynamicsNoSensors):
         self.true_state.bx = SENSOR.gyro_x_bias
         self.true_state.by = SENSOR.gyro_y_bias
         self.true_state.bz = SENSOR.gyro_z_bias
-<<<<<<< HEAD
         # self.true_state.camera_az = self._state.item(13)
         # self.true_state.camera_el = self._state.item(14)
-=======
-        self.true_state.camera_az = self._state.item(13)
-        self.true_state.camera_el = self._state.item(14)    
->>>>>>> cda84eca4172a8bf96567f02891b885304ceea3a

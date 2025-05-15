@@ -83,7 +83,7 @@ class Observer:
                 [0.0], # chi
                 [0.0], # wn 
                 [0.0], # we 
-                [0.0], # psi
+                [0.0], # psi``
                 ]), 
             Qu=0.*np.diag([
                 SENSOR.gyro_sigma**2, 
