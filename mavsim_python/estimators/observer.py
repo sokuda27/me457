@@ -22,14 +22,14 @@ class Observer:
         self.estimated_state = MsgState()
 
         # Low pass filters for sensor measurements
-        self.lpf_gyro_x = AlphaFilter(alpha=0.7, y0=initial_measurements.gyro_x)
-        self.lpf_gyro_y = AlphaFilter(alpha=0.7, y0=initial_measurements.gyro_y)
-        self.lpf_gyro_z = AlphaFilter(alpha=0.7, y0=initial_measurements.gyro_z)
-        self.lpf_accel_x = AlphaFilter(alpha=0.7, y0=initial_measurements.accel_x)
-        self.lpf_accel_y = AlphaFilter(alpha=0.7, y0=initial_measurements.accel_y)
-        self.lpf_accel_z = AlphaFilter(alpha=0.7, y0=initial_measurements.accel_z)
+        self.lpf_gyro_x = AlphaFilter(alpha=0.5, y0=initial_measurements.gyro_x)
+        self.lpf_gyro_y = AlphaFilter(alpha=0.5, y0=initial_measurements.gyro_y)
+        self.lpf_gyro_z = AlphaFilter(alpha=0.5, y0=initial_measurements.gyro_z)
+        self.lpf_accel_x = AlphaFilter(alpha=0.5, y0=initial_measurements.accel_x)
+        self.lpf_accel_y = AlphaFilter(alpha=0.5, y0=initial_measurements.accel_y)
+        self.lpf_accel_z = AlphaFilter(alpha=0.5, y0=initial_measurements.accel_z)
         self.lpf_abs = AlphaFilter(alpha=0.9, y0=initial_measurements.abs_pressure)
-        self.lpf_diff = AlphaFilter(alpha=0.7, y0=initial_measurements.diff_pressure)
+        self.lpf_diff = AlphaFilter(alpha=0.5, y0=initial_measurements.diff_pressure)
 
         # EKF for attitude (phi, theta)
         self.attitude_ekf = ExtendedKalmanFilterContinuousDiscrete(
