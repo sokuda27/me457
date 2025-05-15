@@ -6,7 +6,6 @@ pid_control
 """
 import numpy as np
 
-
 class PIDControl:
     def __init__(self, kp=0.0, ki=0.0, kd=0.0, Ts=0.01, sigma=0.05, limit=1.0):
         self.kp = kp

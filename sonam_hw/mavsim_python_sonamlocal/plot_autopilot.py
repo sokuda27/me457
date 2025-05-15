@@ -52,6 +52,9 @@ trim_input = MsgDelta(elevator=-0.124778,
                           rudder=-0.000303,
                           throttle=0.676752)
 
+# trim_state_in, trim_input_in = compute_trim(mav, 25, 0)
+# hello = compute_model(mav, trim_state_in, trim_input_in)
+
 while sim_time < end_time:
 
     # -------autopilot commands-------------

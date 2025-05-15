@@ -10,8 +10,8 @@ from tools.rotations import euler_to_quaternion
 from tools.signals import Signals
 from models.mav_dynamics_control import MavDynamics
 from models.wind_simulation import WindSimulation
-from controllers.autopilot_lqr import Autopilot
-from models.compute_models import compute_model
+from controllers.autopilot import Autopilot
+from models.compute_models_old import compute_model
 # from controllers.autopilot_lqr import Autopilot
 import time
 
@@ -41,17 +41,16 @@ end_time = 30
 
 roll_hold = []
 roll_command_plot = []
-pitch_hold = []
-pitch_command_plot = []
-yaw_hold = []
-yaw_command_plot = []
-
+# pitch_hold = []
+# yaw_hold = []
 course_hold = []
 course_command_plot = []
-airspeed_hold = []
-airspeed_command_plot = []
-altitude_hold = []
-altitude_command_plot = []
+
+# trim_state = np.array([[0.000000, -0.000000, -100.000000, 24.968743, 0.000000, 1.249755, 0.999687, 0.000000, 0.025003, 0.000000, 0.000000, 0.000000, 0.000000]]).T
+# trim_input = MsgDelta(elevator=-0.124778,
+#                           aileron=0.001836,
+#                           rudder=-0.000303,
+#                           throttle=0.676752)
 
 trim_state_in, trim_input_in = compute_trim(mav, 25, 0)
 hello = compute_model(mav, trim_state_in, trim_input_in)
@@ -59,32 +58,23 @@ hello = compute_model(mav, trim_state_in, trim_input_in)
 while sim_time < end_time:
 
     # -------autopilot commands-------------
-    commands.airspeed_command = Va_command.square(sim_time)
-    airspeed_command_plot.append(Va_command.square(sim_time))
-    commands.altitude_command = altitude_command.square(sim_time)
-    altitude_command_plot.append(altitude_command.square(sim_time))
-    commands.course_command = course_command.square(sim_time)
-    course_command_plot.append(course_command.square(sim_time))
+    commands.airspeed_command = Va_command.step(sim_time)
+    commands.course_command = course_command.step(sim_time)
+    course_command_plot.append(course_command.step(sim_time))
 
     # -------autopilot-------------
     estimated_state = mav.true_state  # uses true states in the control
     delta, commanded_state = autopilot.update(commands, estimated_state)
+    roll_command_plot.append(commanded_state.phi)
 
     # -------physical system-------------
     current_wind = wind.update()  # get the new wind vector
     mav.update(delta, current_wind)  # propagate the MAV dynamics
 
     roll_hold.append(mav.true_state.phi)
-    pitch_hold.append(mav.true_state.theta)
-    yaw_hold.append(mav.true_state.psi)
-
-    roll_command_plot.append(commanded_state.phi)
-    pitch_command_plot.append(commanded_state.theta)
-    yaw_command_plot.append(commanded_state.psi)
-
+    # pitch_hold.append(mav.true_state.theta)
+    # yaw_hold.append(mav.true_state.psi)
     course_hold.append(mav.true_state.chi)
-    altitude_hold.append(mav.true_state.altitude)
-    airspeed_hold.append(mav.true_state.Va)
 
     # -------increment time-------------
     sim_time += SIM.ts_simulation
@@ -92,46 +82,29 @@ while sim_time < end_time:
 
 fig, axs = plt.subplots(1, 3, constrained_layout=True, figsize=(15,5))
 
-# course, altitude, airspeed
 axs[0].plot(course_hold)
 axs[0].plot(course_command_plot)
 axs[0].set_xlabel('Time (s)')
 axs[0].set_ylabel('course hold')
 axs[0].legend()
 
-axs[1].plot(altitude_hold)
-axs[1].plot(altitude_command_plot)
+axs[1].plot(roll_hold)
+axs[1].plot(roll_command_plot)
 axs[1].set_xlabel('Time (s)')
-axs[1].set_ylabel('altitude hold')
+axs[1].set_ylabel('roll hold')
 axs[1].legend()
 
-axs[2].plot(airspeed_hold)
-axs[2].plot(airspeed_command_plot)
-axs[2].set_xlabel('Time (s)')
-axs[2].set_ylabel('airspeed hold')
-axs[2].legend()
-
-fig.suptitle('command graphs', fontsize=16)
-plt.show()
-
-# # roll pitch yaw
 # axs[0].plot(roll_hold)
-# axs[0].plot(roll_command_plot)
 # axs[0].set_xlabel('Time (s)')
 # axs[0].set_ylabel('roll hold')
-# axs[0].legend()
 
 # axs[1].plot(pitch_hold)
-# axs[1].plot(pitch_command_plot)
 # axs[1].set_xlabel('Time (s)')
 # axs[1].set_ylabel('pitch hold')
-# axs[1].legend()
 
 # axs[2].plot(yaw_hold)
-# axs[2].plot(yaw_command_plot)
 # axs[2].set_xlabel('Time (s)')
 # axs[2].set_ylabel('yaw hold')
-# axs[2].legend()
 
-fig.suptitle('angles graphs', fontsize=16)
+fig.suptitle('Position graphs', fontsize=16)
 plt.show()

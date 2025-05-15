@@ -11,8 +11,8 @@ from tools.signals import Signals
 from models.mav_dynamics_control import MavDynamics
 from models.wind_simulation import WindSimulation
 from controllers.autopilot import Autopilot
-from models.compute_models import compute_model
-from models.compute_models import compute_ss_model
+from models.compute_models_old import compute_model
+from models.compute_models_old import compute_ss_model
 # from controllers.autopilot_lqr import Autopilot
 from scipy import signal
 from numpy import linalg as LA

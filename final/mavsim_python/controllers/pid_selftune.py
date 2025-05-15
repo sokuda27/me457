@@ -1,6 +1,6 @@
 import numpy as np
 
-class SelfTuningPIDControl:
+class selftuningPID:
     def __init__(self, kp=0.5, ki=0.05, kd=0.1, Ts=0.01, limit=np.inf, learning_rate=0.01):
         self.kp = kp
         self.ki = ki

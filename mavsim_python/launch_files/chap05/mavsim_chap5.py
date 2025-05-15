@@ -17,7 +17,7 @@ import parameters.simulation_parameters as SIM
 from models.mav_dynamics_control import MavDynamics
 from models.wind_simulation import WindSimulation
 from models.trim import compute_trim
-from models.compute_models import compute_model
+from models.compute_models_old import compute_model
 from tools.signals import Signals
 
 from viewers.view_manager import ViewManager
