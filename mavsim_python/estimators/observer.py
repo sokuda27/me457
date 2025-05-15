@@ -146,6 +146,13 @@ class Observer:
             h=self.h_accel, 
             R=self.R_accel)
         
+        print("---- EKF ATTITUDE ----")
+        print("xhat_attitude =", xhat_attitude.T)
+        print("y_accel =", y_accel.T)
+        print("h(xhat) =", self.h_accel(xhat_attitude, u_attitude).T)
+        print("innovation =", y_accel.T - self.h_accel(xhat_attitude, u_attitude).T)
+
+
         self.estimated_state.phi = xhat_attitude.item(0)
         self.estimated_state.theta = xhat_attitude.item(1)
 
