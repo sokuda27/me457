@@ -62,9 +62,30 @@ class MavDynamics(MavDynamicsNoSensors):
         # simulate magnetometers
         # magnetic field in provo has magnetic declination of 12.5 degrees
         # and magnetic inclination of 66 degrees
-        self._sensors.mag_x = 0
-        self._sensors.mag_y = 0
-        self._sensors.mag_z = 0
+        
+        # simulate magnetometers
+        # magnetic field in Provo: declination = 12.5 deg east, inclination = 66 deg downward
+        inclination = np.radians(66.0)
+        declination = np.radians(12.5)
+        mag_strength = 1.0  # Assume normalized strength of 1 (Tesla units don't matter here)
+
+        # magnetic field in inertial (north-east-down) frame
+        mag_n = mag_strength * np.cos(inclination) * np.cos(declination)
+        mag_e = mag_strength * np.cos(inclination) * np.sin(declination)
+        mag_d = mag_strength * np.sin(inclination)
+
+        mag_inertial = np.array([[mag_n], [mag_e], [mag_d]])
+
+        # rotation from body to inertial
+        R = quaternion_to_rotation(self._state[6:10])  # body-to-inertial rotation matrix
+        R_transpose = R.T  # inertial-to-body frame
+
+        mag_body = R_transpose @ mag_inertial  # rotate magnetic field into body frame
+
+        # add optional small measurement noise
+        self._sensors.mag_x = mag_body.item(0) + np.random.normal(0, SENSOR.mag_sigma)
+        self._sensors.mag_y = mag_body.item(1) + np.random.normal(0, SENSOR.mag_sigma)
+        self._sensors.mag_z = mag_body.item(2) + np.random.normal(0, SENSOR.mag_sigma)
 
         # simulate pressure sensors
         h_AGL = h
@@ -123,10 +144,5 @@ class MavDynamics(MavDynamicsNoSensors):
         self.true_state.bx = SENSOR.gyro_x_bias
         self.true_state.by = SENSOR.gyro_y_bias
         self.true_state.bz = SENSOR.gyro_z_bias
-<<<<<<< HEAD
-        # self.true_state.camera_az = self._state.item(13)
-        # self.true_state.camera_el = self._state.item(14)
-=======
         self.true_state.camera_az = self._state.item(13)
         self.true_state.camera_el = self._state.item(14)    
->>>>>>> cda84eca4172a8bf96567f02891b885304ceea3a

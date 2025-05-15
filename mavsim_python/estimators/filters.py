@@ -91,7 +91,7 @@ class ExtendedKalmanFilterContinuousDiscrete:
             self.xhat = self.xhat + self.Ts * self.f(self.xhat, u)
             # compute Jacobian of f with respect to x
             A = self.jacobian(self.f, self.xhat, u)
-            print(A.shape)
+            # print(A.shape)
             # convert to discrete time models
             A_d = np.eye(self.n) + self.Ts * A + ((self.Ts ** 2)/2.) * A @ A
             # compute Jacobian of f with respect to u
