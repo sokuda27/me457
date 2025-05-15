@@ -63,8 +63,10 @@ course_hold = []
 course_hold_test = []
 course_command_plot = []
 va_hold = []
+va_hold_test = []
 va_command_plot = []
 altitude_hold = []
+altitude_hold_test = []
 altitude_command_plot = []
 
 # trim_state = np.array([[0.000000, -0.000000, -100.000000, 24.968743, 0.000000, 1.249755, 0.999687, 0.000000, 0.025003, 0.000000, 0.000000, 0.000000, 0.000000]]).T
@@ -127,6 +129,10 @@ while sim_time < end_time:
     va_hold.append(mav.true_state.Va)
     altitude_hold.append(mav.true_state.altitude)
 
+    course_hold_test.append(estimated_state.chi)
+    va_hold_test.append(estimated_state.Va)
+    altitude_hold_test.append(estimated_state.altitude)
+
     # -------increment time-------------
     sim_time += SIM.ts_simulation
     # time.sleep(0.002) # slow down the simulation for visualization
@@ -134,11 +140,10 @@ while sim_time < end_time:
 fig, axs = plt.subplots(1, 3, constrained_layout=True, figsize=(15,5))
 
 axs[0].plot(course_hold)
-# axs[0].plot(course_hold_test)
+axs[0].plot(course_hold_test)
 axs[0].plot(course_command_plot)
 axs[0].set_xlabel('Time (s)')
 axs[0].set_ylabel('course hold')
-axs[0].legend()
 
 # axs[1].plot(roll_hold)
 # axs[1].plot(roll_command_plot)
@@ -147,10 +152,10 @@ axs[0].legend()
 # axs[1].legend()
 
 axs[1].plot(va_hold)
+axs[1].plot(va_hold_test)
 axs[1].plot(va_command_plot)
 axs[1].set_xlabel('Time (s)')
 axs[1].set_ylabel('va hold')
-axs[1].legend()
 
 # axs[0].plot(roll_hold)
 # axs[0].set_xlabel('Time (s)')
@@ -166,10 +171,10 @@ axs[1].legend()
 # axs[2].set_ylabel('yaw hold')
 
 axs[2].plot(altitude_hold)
+axs[2].plot(altitude_hold_test)
 axs[2].plot(altitude_command_plot)
 axs[2].set_xlabel('Time (s)')
 axs[2].set_ylabel('altitude hold')
-axs[2].legend()
 
 fig.suptitle('Position graphs', fontsize=16)
 plt.show()
