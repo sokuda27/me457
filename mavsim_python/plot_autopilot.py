@@ -76,6 +76,7 @@ while sim_time < end_time:
     # -------autopilot-------------
     measurements = mav._state
     estimated_state = mav.true_state  # uses true states in the control
+    print(quaternion_to_euler(measurements))
     delta, commanded_state = autopilot.update(commands, estimated_state)
     roll_command_plot.append(commanded_state.phi)
 

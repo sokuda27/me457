@@ -9,7 +9,6 @@ from models.trim import compute_trim
 from tools.rotations import euler_to_quaternion
 from tools.rotations import quaternion_to_euler
 from tools.signals import Signals
-from models.mav_dynamics_control import MavDynamics as mav_true
 from models.mav_dynamics_sensors import MavDynamics
 from models.wind_simulation import WindSimulation
 from controllers.autopilot import Autopilot
@@ -18,10 +17,11 @@ from models.compute_models import compute_model
 from estimators.observer import Observer
 import time
 
+np.random.seed(4)
+
 # initialize elements of the architecture
 wind = WindSimulation(SIM.ts_simulation)
 mav = MavDynamics(SIM.ts_simulation)
-mav_t = mav_true(SIM.ts_simulation)
 
 # Initialize MAV to nominal state
 mav._state = np.zeros((13, 1))
@@ -30,14 +30,6 @@ mav._alpha = 0.0
 mav._beta = 0.0
 mav._wind = np.zeros((6, 1))
 mav._forces = np.zeros((3, 1))
-
-# # Initialize MAV_true to nominal state
-# mav_t._state = np.zeros((13, 1))
-# mav_t._Va = 25.0  # desired airspeed
-# mav_t._alpha = 0.0
-# mav_t._beta = 0.0
-# mav_t._wind = np.zeros((6, 1))
-# mav_t._forces = np.zeros((3, 1))
 
 autopilot = Autopilot(SIM.ts_simulation)
 observer = Observer(SIM.ts_simulation)
@@ -55,7 +47,7 @@ altitude_command = Signals(dc_offset=100.0,
                            frequency=0.02)
 course_command = Signals(dc_offset=np.radians(45),
                          amplitude=np.radians(45),
-                         start_time=5.0,
+                         start_time=1.0,
                          frequency=0.015)
 
 sim_time = SIM.start_time
@@ -66,6 +58,7 @@ roll_command_plot = []
 # pitch_hold = []
 # yaw_hold = []
 course_hold = []
+course_hold_test = []
 course_command_plot = []
 
 # trim_state = np.array([[0.000000, -0.000000, -100.000000, 24.968743, 0.000000, 1.249755, 0.999687, 0.000000, 0.025003, 0.000000, 0.000000, 0.000000, 0.000000]]).T
@@ -87,8 +80,22 @@ while sim_time < end_time:
     # -------autopilot-------------
     measurements = mav.sensors()  # get sensor measurements
     estimated_state = observer.update(measurements)
-    # xtrue = quaternion_to_euler(mav_t._state)
-    # print(xtrue)
+
+    # Attitude check
+    # print("TRUE phi, theta:", mav.true_state.phi, mav.true_state.theta)
+    # print("est state:", estimated_state.phi, estimated_state.theta)
+    # print("TRUE p, q, r:", mav.true_state.p, mav.true_state.q, mav.true_state.r)
+    # print("GYRO (p, q, r):", measurements.gyro_x, measurements.gyro_y, measurements.gyro_z)
+
+    # # Position check
+    print("TRUE ned:", mav.true_state.north, mav.true_state.east, mav.true_state.altitude )
+    print("GPS:", measurements.gps_n, measurements.gps_e, measurements.gps_h)
+    print("est state:", estimated_state.north, estimated_state.east, estimated_state.altitude)
+
+    # # Chi check
+    # print("TRUE chi:", mav.true_state.chi)
+    # print("est state:", estimated_state.chi)
+
     # estimated_state = mav.true_state  # uses true states in the control
     delta, commanded_state = autopilot.update(commands, estimated_state)
     roll_command_plot.append(commanded_state.phi)
@@ -96,12 +103,12 @@ while sim_time < end_time:
     # -------physical system-------------
     current_wind = wind.update()  # get the new wind vector
     mav.update(delta, current_wind)  # propagate the MAV dynamics
-    mav_t.update(delta, current_wind)
 
-    roll_hold.append(mav.true_state.phi)
+    roll_hold.append(estimated_state.phi)
     # pitch_hold.append(mav.true_state.theta)
     # yaw_hold.append(mav.true_state.psi)
-    course_hold.append(mav.true_state.chi)
+    course_hold.append(estimated_state.chi)
+    course_hold_test.append(mav.true_state.chi)
 
     # -------increment time-------------
     sim_time += SIM.ts_simulation
@@ -110,6 +117,7 @@ while sim_time < end_time:
 fig, axs = plt.subplots(1, 3, constrained_layout=True, figsize=(15,5))
 
 axs[0].plot(course_hold)
+axs[0].plot(course_hold_test)
 axs[0].plot(course_command_plot)
 axs[0].set_xlabel('Time (s)')
 axs[0].set_ylabel('course hold')
