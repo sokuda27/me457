@@ -98,10 +98,10 @@ while sim_time < end_time:
     # print("TRUE p, q, r:", mav.true_state.p, mav.true_state.q, mav.true_state.r)
     # print("GYRO (p, q, r):", measurements.gyro_x, measurements.gyro_y, measurements.gyro_z)
 
-    # Position check
-    print("TRUE ned:", mav.true_state.north, mav.true_state.east, mav.true_state.altitude )
-    print("GPS:", measurements.gps_n, measurements.gps_e, measurements.gps_h)
-    print("est state:", estimated_state.north, estimated_state.east, estimated_state.altitude)
+    # # Position check
+    # print("TRUE ned:", mav.true_state.north, mav.true_state.east, mav.true_state.altitude )
+    # print("GPS:", measurements.gps_n, measurements.gps_e, measurements.gps_h)
+    # print("est state:", estimated_state.north, estimated_state.east, estimated_state.altitude)
 
     # # Chi check
     # print("TRUE chi:", mav.true_state.chi)
@@ -116,6 +116,16 @@ while sim_time < end_time:
     roll_command_plot.append(commanded_state.phi)
     # yaw_command_plot.append(commanded_state.psi)
 
+    # Altitude check
+    # print("true alt:", mav.true_state.altitude)
+    # print("comands/commanded alt:", commands.altitude_command, commanded_state.altitude)
+    # print("sensor alt:", measurements.gps_h)
+    # print("est alt:", estimated_state.altitude)
+
+    print("true pitch:", mav.true_state.theta)
+    print("comands/commanded pitch:", commanded_state.theta)
+    print("est pitch:", estimated_state.theta)
+
     # -------physical system-------------
     current_wind = wind.update()  # get the new wind vector
     mav.update(delta, current_wind)  # propagate the MAV dynamics
@@ -125,7 +135,7 @@ while sim_time < end_time:
     yaw_hold.append(mav.true_state.psi)
 
     course_hold.append(mav.true_state.chi)
-    # course_hold_test.append(mav.true_state.chi)
+    course_hold_test.append(mav.true_state.chi)
     va_hold.append(mav.true_state.Va)
     altitude_hold.append(mav.true_state.altitude)
 
