@@ -38,7 +38,7 @@ Va_command = Signals(dc_offset=25.0,
                      amplitude=3.0,
                      start_time=2.0,
                      frequency=0.01)
-altitude_command = Signals(dc_offset=100.0,
+altitude_command = Signals(dc_offset=-100.0,
                            amplitude=20.0,
                            start_time=0.0,
                            frequency=0.02)

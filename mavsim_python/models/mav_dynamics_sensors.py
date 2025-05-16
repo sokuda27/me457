@@ -32,86 +32,54 @@ class MavDynamics(MavDynamicsNoSensors):
     def sensors(self):
         "Return value of sensors on MAV: gyros, accels, absolute_pressure, dynamic_pressure, GPS"
         state = self.true_state
-        pn = state.north
-        pe = state.east
-        h = -self._state.item(2)
-        #pd = h
-        p = self._state.item(10)
-        q = self._state.item(11)
-        r = self._state.item(12)
-        phi = state.phi
-        theta = state.theta
-        psi = state.psi
+        phi, theta, psi = quaternion_to_euler(self._state[6:10])
+        p, q, r = self._state[10], self._state[11], self._state[12]
+        u, v, w = self._state[3], self._state[4], self._state[5]
+        fx, fy, fz = self._forces.item(0), self._forces.item(1), self._forces.item(2)
+        h = -self._state[2]
+        m = MAV.mass
         g = MAV.gravity
-        fx = self._forces[0]
-        fy = self._forces[1]
-        fz = self._forces[2]
-        Va = state.Va
-        # simulate rate gyros(units are rad / sec)
-        self._sensors.gyro_x = p + SENSOR.gyro_x_bias + np.random.normal(0, SENSOR.gyro_sigma)
-        self._sensors.gyro_y = q + SENSOR.gyro_y_bias + np.random.normal(0, SENSOR.gyro_sigma)
-        self._sensors.gyro_z = r + SENSOR.gyro_z_bias + np.random.normal(0, SENSOR.gyro_sigma)
+        B_abs_pres = 0
+        B_diff_pres = 0
 
-        # simulate accelerometers(units of g)
-        self._sensors.accel_x = (fx / MAV.mass + g * sin(theta) + np.random.normal(0, SENSOR.accel_sigma)).item(0)
-        self._sensors.accel_y = (
-                    fy / MAV.mass - g * cos(theta) * sin(phi) + np.random.normal(0, SENSOR.accel_sigma)).item(0)
-        self._sensors.accel_z = (
-                    fz / MAV.mass - g * cos(theta) * cos(phi) + np.random.normal(0, SENSOR.accel_sigma)).item(0)
+        # simulate rate gyros (rad/s)
+        self._sensors.gyro_x = float(p + SENSOR.gyro_x_bias + np.random.normal(0, SENSOR.gyro_sigma))
+        self._sensors.gyro_y = float(q + SENSOR.gyro_y_bias + np.random.normal(0, SENSOR.gyro_sigma))
+        self._sensors.gyro_z = float(r + SENSOR.gyro_z_bias + np.random.normal(0, SENSOR.gyro_sigma))
+
+        # simulate accelerometers (m/s^2)
+        self._sensors.accel_x = float((fx/m) + g * np.sin(theta) + np.random.normal(0, SENSOR.accel_sigma))
+        self._sensors.accel_y = float((fy/m) - g * np.cos(theta) * np.sin(phi) + np.random.normal(0, SENSOR.accel_sigma))
+        self._sensors.accel_z = float((fz/m) - g * np.cos(theta) * np.cos(phi) + np.random.normal(0, SENSOR.accel_sigma))
 
         # simulate magnetometers
-        # magnetic field in provo has magnetic declination of 12.5 degrees
-        # and magnetic inclination of 66 degrees
-        
-        # simulate magnetometers
-        # magnetic field in Provo: declination = 12.5 deg east, inclination = 66 deg downward
-        inclination = np.radians(66.0)
-        declination = np.radians(12.5)
-        mag_strength = 1.0  # Assume normalized strength of 1 (Tesla units don't matter here)
+        a = np.radians(12.5)
+        b = np.radians(66)
+        m_i = np.array([
+            np.cos(a) * np.cos(b),
+            np.cos(a) * np.sin(b),
+            np.sin(a)])
 
-        # magnetic field in inertial (north-east-down) frame
-        mag_n = mag_strength * np.cos(inclination) * np.cos(declination)
-        mag_e = mag_strength * np.cos(inclination) * np.sin(declination)
-        mag_d = mag_strength * np.sin(inclination)
-
-        mag_inertial = np.array([[mag_n], [mag_e], [mag_d]])
-
-        # rotation from body to inertial
-        R = quaternion_to_rotation(self._state[6:10])  # body-to-inertial rotation matrix
-        R_transpose = R.T  # inertial-to-body frame
-
-        mag_body = R_transpose @ mag_inertial  # rotate magnetic field into body frame
-
-        # add optional small measurement noise
-        self._sensors.mag_x = mag_body.item(0) + np.random.normal(0, SENSOR.mag_sigma)
-        self._sensors.mag_y = mag_body.item(1) + np.random.normal(0, SENSOR.mag_sigma)
-        self._sensors.mag_z = mag_body.item(2) + np.random.normal(0, SENSOR.mag_sigma)
+        m_b = quaternion_to_rotation(self._state[6:10]) @ m_i
+        self._sensors.mag_x = float(m_b.item(0) + np.random.normal(0, SENSOR.mag_sigma))
+        self._sensors.mag_y = float(m_b.item(1) + np.random.normal(0, SENSOR.mag_sigma))
+        self._sensors.mag_z = float(m_b.item(2) + np.random.normal(0, SENSOR.mag_sigma))
 
         # simulate pressure sensors
-        h_AGL = h
-        self._sensors.abs_pressure = MAV.rho * MAV.gravity * h_AGL + np.random.normal(0,
-                                                                                                         SENSOR.abs_pres_sigma)
-        self._sensors.diff_pressure = MAV.rho * self._Va ** 2 / 2 + np.random.normal(0,
-                                                                                                      SENSOR.diff_pres_sigma)
-        
+        self._sensors.abs_pressure = float(MAV.rho * MAV.gravity * h + B_abs_pres + np.random.normal(0, SENSOR.abs_pres_sigma))
+        self._sensors.diff_pressure = float(MAV.rho * (self._Va**2)/2 + B_diff_pres + np.random.normal(0, SENSOR.diff_pres_sigma))
+
         # simulate GPS sensor
         if self._t_gps >= SENSOR.ts_gps:
-            self._gps_eta_n = np.exp(-SENSOR.gps_k * SENSOR.ts_gps) * self._gps_eta_n + np.random.normal(0,
-                                                                                                         SENSOR.gps_n_sigma)
-            self._gps_eta_e = np.exp(-SENSOR.gps_k * SENSOR.ts_gps) * self._gps_eta_e + np.random.normal(0,
-                                                                                                         SENSOR.gps_e_sigma)
-            self._gps_eta_h = np.exp(-SENSOR.gps_k * SENSOR.ts_gps) * self._gps_eta_h + np.random.normal(0,
-                                                                                                         SENSOR.gps_h_sigma)
-            self._sensors.gps_n = pn + self._gps_eta_n
-            self._sensors.gps_e = pe + self._gps_eta_e
-            self._sensors.gps_h = -self._state.item(2) + self._gps_eta_h
-            wn = state.wn
-            we = state.we
-            V1 = Va * np.sin(psi) + we
-            V2 = Va * np.cos(psi) + wn
-            self._sensors.gps_Vg = (np.sqrt(V1 ** 2 + V2 ** 2) + np.random.normal(0, SENSOR.gps_Vg_sigma)).item(0)
-            self._sensors.gps_course = (np.arctan2(V1, V2) + np.random.normal(0, SENSOR.gps_course_sigma)).item(0)
-            self._t_gps = 0.
+            self._gps_eta_n = np.exp(-SENSOR.gps_k * SENSOR.ts_gps) * self._gps_eta_n + np.random.normal(0, SENSOR.gps_n_sigma)
+            self._gps_eta_e = np.exp(-SENSOR.gps_k * SENSOR.ts_gps) * self._gps_eta_e + np.random.normal(0, SENSOR.gps_e_sigma)
+            self._gps_eta_h = np.exp(-SENSOR.gps_k * SENSOR.ts_gps) * self._gps_eta_h + np.random.normal(0, SENSOR.gps_h_sigma)
+            self._sensors.gps_n = float(state.north + self._gps_eta_n)
+            self._sensors.gps_e = float(state.east + self._gps_eta_e)
+            self._sensors.gps_h = float(-self._state.item(2) + self._gps_eta_h)
+            self._sensors.gps_Vg = float(np.sqrt((self._Va * np.sin(psi) + state.wn)**2 + (self._Va * np.cos(psi) + state.we)**2) + np.random.normal(0, SENSOR.gps_Vg_sigma))
+            self._sensors.gps_course = float(np.arctan2(self._Va * np.sin(psi) + state.wn, self._Va * np.cos(psi) + state.we) + np.random.normal(0, SENSOR.gps_course_sigma))
+            self._t_gps = 0.0
         else:
             self._t_gps += self._ts_simulation
         return self._sensors
