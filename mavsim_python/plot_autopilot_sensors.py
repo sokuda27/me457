@@ -51,7 +51,7 @@ course_command = Signals(dc_offset=0,
                          frequency=0.015)
 
 sim_time = SIM.start_time
-end_time = 30
+end_time = 100
 
 roll_hold = []
 roll_command_plot = []

@@ -14,6 +14,7 @@ from tools.rotations import euler_to_quaternion, quaternion_to_euler
 import parameters.aerosonde_parameters as MAV
 from parameters.simulation_parameters import ts_simulation as Ts
 from message_types.msg_delta import MsgDelta
+from models.mav_dynamics_control import MavDynamics
 
 
 def compute_model(mav, trim_state, trim_input):
@@ -111,17 +112,12 @@ def compute_tf_model(mav, trim_state, trim_input):
     return Va_trim, alpha_trim, theta_trim, a_phi1, a_phi2, a_theta1, a_theta2, a_theta3, a_V1, a_V2, a_V3
 
 
-def compute_ss_model(mav, trim_state, trim_input):
+def compute_ss_model(mav: MavDynamics, trim_state: np.ndarray, trim_input: MsgDelta):
     x_euler = euler_state(trim_state)
     A = df_dx(mav, x_euler, trim_input)
     B = df_du(mav, x_euler, trim_input)
     A_lon = A[np.ix_([3, 5, 10, 7, 2], [3, 5, 10, 7, 2])]
     B_lon = B[np.ix_([3, 5, 10, 7, 2], [0, 3])]
-    for i in range(0, 5):
-        A_lon[i, 4] = -A_lon[i, 4]
-        A_lon[4, i] = -A_lon[4, i]
-    for i in range(0, 2):
-        B_lon[4, i] = -B_lon[4, i]
     A_lat = A[np.ix_([4, 9, 11, 6, 8], [4, 9, 11, 6, 8])]
     B_lat = B[np.ix_([4, 9, 11, 6, 8], [1, 2])]
     return A_lon, B_lon, A_lat, B_lat
@@ -129,48 +125,44 @@ def compute_ss_model(mav, trim_state, trim_input):
 def euler_state(x_quat):
     # convert state x with attitude represented by quaternion
     # to x_euler with attitude represented by Euler angles
-    x_euler = np.zeros((12,1))
-    x_euler[0:6] = np.copy(x_quat[0:6])
-    phi, theta, psi = quaternion_to_euler(x_quat[6:10])
-    x_euler[6] = phi
-    x_euler[7] = theta
-    x_euler[8] = psi
-    x_euler[9:12] = np.copy(x_quat[10:13])
+    x_euler = np.zeros((12, 1))
+    x_euler[:6] = x_quat[:6]  # copy (pn, pe, h, u, v, w)
+    euler_angles = quaternion_to_euler(x_quat[6:10])
+    x_euler[6:9] = np.reshape(euler_angles, (3, 1))  # replace quaternion with Euler angles
+    x_euler[9:] = x_quat[10:]  # copy (p, q, r)
     return x_euler
 
 def quaternion_state(x_euler):
-    x_quat = np.zeros((13,1))
-    x_quat[0:6] = np.copy(x_euler[0:6])
-    phi = x_euler.item(6)
-    theta = x_euler.item(7)
-    psi = x_euler.item(8)
-    quat = euler_to_quaternion(phi, theta, psi)
-    x_quat[6:10] = quat
-    x_quat[10:13] = np.copy(x_euler[9:12])
+    x_quat = np.zeros((13, 1))
+    x_quat[:6] = x_euler[:6]  # copy (pn, pe, h, u, v, w)
+    quat = euler_to_quaternion(x_euler[6], x_euler[7], x_euler[8])
+    x_quat[6:10] = quat.reshape((4, 1))  # replace Euler angles with quaternion
+    x_quat[10:13] = x_euler[9:12]  # copy (p, q, r)
     return x_quat
 
 def f_euler(mav, x_euler, delta):
     x_quat = quaternion_state(x_euler)
+    x_quat = quaternion_state(x_euler)
     mav._state = x_quat
     mav._update_velocity_data()
-    f = mav._f(x_quat, mav._forces_moments(delta))
-    f_euler_ = euler_state(f)
     
-    eps = 0.001
-    e = x_quat[6:10]
-    phi = x_euler .item(6)
-    theta = x_euler.item(7)
-    psi = x_euler.item(8)
-    dTheta_dquat = np.zeros((3,4))
-    for j in range(0,4):
-        tmp = np.zeros((4, 1))
-        tmp[j][0] = eps
-        e_eps = (e + tmp) / np.linalg.norm(e + tmp)
-        phi_eps, theta_eps, psi_eps = quaternion_to_euler(e_eps)
-        dTheta_dquat[0][j] = (phi_eps - phi) / eps
-        dTheta_dquat[1][j] = (theta_eps - theta) / eps
-        dTheta_dquat[2][j] = (psi_eps - psi) / eps
-    f_euler_[6:9] = np.copy(dTheta_dquat @ f[6:10])
+    forces_moments = mav._forces_moments(delta)
+    f_quat = mav._f(x_quat[0:13], forces_moments)
+
+    # Convert quaternion derivative to Euler angle derivatives
+    phi, theta, psi = quaternion_to_euler(x_quat[6:10])
+    phi_dot = x_quat[10] + np.sin(phi) * np.tan(theta) * x_quat[11] + np.cos(phi) * np.tan(theta) * x_quat[12]
+    theta_dot = np.cos(phi) * x_quat[11] - np.sin(phi) * x_quat[12]
+    psi_dot = np.sin(phi)/np.cos(theta) * x_quat[11] + np.cos(phi)/np.cos(theta) * x_quat[12]
+
+    f_euler_ = np.zeros((12, 1))
+    f_euler_[0:3] = f_quat[0:3]       # pn_dot, pe_dot, pd_dot
+    f_euler_[3:6] = f_quat[3:6]       # u_dot, v_dot, w_dot
+    f_euler_[6] = phi_dot
+    f_euler_[7] = theta_dot
+    f_euler_[8] = psi_dot
+    f_euler_[9:12] = f_quat[10:13]    # p_dot, q_dot, r_dot
+
     return f_euler_
     
 

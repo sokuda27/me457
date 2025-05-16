@@ -115,10 +115,25 @@ class MavDynamics:
         n = forces_moments.item(5)
 
         # Position Kinematics
-        pos_dot = quaternion_to_rotation(np.array([e0, e1, e2, e3])) @ np.array([u, v, w])
-        north_dot = pos_dot[0]
-        east_dot = pos_dot[1]
-        down_dot = pos_dot[2]
+        def position_kinematics():            
+            A = np.array([
+                [e1**2 + e0**2 - e2**2 - e3**2,     2 * (e1 * e2 - e3 * e0),            2 * (e1 * e3 + e2 * e0)],
+                [2 * (e1 * e2 + e3 * e0),           e2**2 + e0**2 - e1**2 - e3**2,      2 * (e2 * e3 - e1 * e0)],
+                [2 * (e1 * e3 - e2 * e0),           2 * (e2 * e3 + e1 * e0),            e3**2 + e0**2 - e1**2 - e2**2]
+            ])
+            det_A = np.linalg.det(A)
+            if det_A != 0:
+                A = A / det_A
+            else:
+                print("Warning: Singular matrix detected. Normalization skipped.")
+
+            
+            x = np.array([[u],
+                          [v],
+                          [w]]).reshape(3,1)
+            
+            out =  A @ x
+            return out.item(0), out.item(1), out.item(2)
 
         # Position Dynamics
         # u_dot = 
@@ -142,6 +157,7 @@ class MavDynamics:
 
 
         # collect the derivative of the states
+        north_dot, east_dot, down_dot = position_kinematics()
         x_dot = np.array([[north_dot, east_dot, down_dot, u_dot, v_dot, w_dot, e0_dot, e1_dot, e2_dot, e3_dot, p_dot, q_dot, r_dot ]]).T
         #x_dot = np.array([[0,0,0,0,0,0,0,0,0,0,0,0,0]]).T
         return x_dot
