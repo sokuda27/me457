@@ -65,13 +65,23 @@ class MavDynamics(MavDynamicsForces):
         
         # convert total wind to world frame
         
-        self._wind = quaternion_to_rotation(self._state[6:10]).T @ wind_body
-        velocity_body = self._state[3:6].reshape((3,1))
-        v_air_body = velocity_body - wind_body
-        self._Va = np.linalg.norm(v_air_body)
-        self._alpha = np.arctan2(v_air_body.item(2), v_air_body.item(0)) if v_air_body[0] != 0 else 0.0
-        self._beta = np.arcsin(v_air_body.item(1) / self._Va) if self._Va != 0 else 0.0
+        self._wind = self._state[3:6] - wind_body
 
+        # velocity vector relative to the airmass ([ur , vr, wr]= ?)
+        [ur, vr, wr] = self._wind
+        # compute airspeed (self._Va = ?)
+        self._Va = np.sqrt(ur**2 + vr**2 + wr**2)
+        # compute angle of attack (self._alpha = ?)
+        if ur == 0:
+            self._alpha = np.pi/2
+        else:
+            self._alpha = np.arctan(wr/ur)
+        # compute sideslip angle (self._beta = ?)
+        if self._Va == 0:
+            self._beta = 0
+        else:
+            self._beta = np.arcsin(vr/self._Va)
+        
     def _forces_moments(self, delta):
         """
         return the forces on the UAV based on the state, wind, and control surfaces
@@ -83,18 +93,9 @@ class MavDynamics(MavDynamicsForces):
         
         phi, theta, psi = quaternion_to_euler(self._state[6:10])
         p,q,r = self._state[10:13]
-        e0 = self._state.item(6)
-        e1 = self._state.item(7)
-        e2 = self._state.item(8)
-        e3 = self._state.item(9)
         
         # compute gravitational forces ([fg_x, fg_y, fg_z])
-        fg = MAV.mass * MAV.gravity * np.array([[2 * (e1*e3 - e2*e0)],
-                                                        [2 * (e2*e3 + e1*e0)],
-                                                        [e3**2 + e0**2 - e1**2 - e2**2],
-                                                        [0],
-                                                        [0],
-                                                        [0]])
+        fg = quaternion_to_rotation(self._state[6:10]).T @ np.array([[0], [0], [MAV.mass * MAV.gravity]])
         fg_x = fg[0]
         fg_y = fg[1]
         fg_z = fg[2]

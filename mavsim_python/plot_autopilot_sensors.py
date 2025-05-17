@@ -41,7 +41,7 @@ Va_command = Signals(dc_offset=25.0,
                      amplitude=3.0,
                      start_time=2.0,
                      frequency=0.01)
-altitude_command = Signals(dc_offset=100.0,
+altitude_command = Signals(dc_offset=-100.0,
                            amplitude=20.0,
                            start_time=0.0,
                            frequency=0.02)
@@ -117,14 +117,15 @@ while sim_time < end_time:
     # yaw_command_plot.append(commanded_state.psi)
 
     # Altitude check
-    # print("true alt:", mav.true_state.altitude)
-    # print("comands/commanded alt:", commands.altitude_command, commanded_state.altitude)
-    # print("sensor alt:", measurements.gps_h)
-    # print("est alt:", estimated_state.altitude)
+    print("true alt:", mav.true_state.altitude)
+    print("comands/commanded alt:", commands.altitude_command, commanded_state.altitude)
+    print("sensor alt:", measurements.gps_h)
+    print("est alt:", estimated_state.altitude)
 
-    print("true pitch:", mav.true_state.theta)
-    print("comands/commanded pitch:", commanded_state.theta)
-    print("est pitch:", estimated_state.theta)
+    # Pitch check
+    # print("true pitch:", mav.true_state.theta)
+    # print("comands/commanded pitch:", commanded_state.theta)
+    # print("est pitch:", estimated_state.theta)
 
     # -------physical system-------------
     current_wind = wind.update()  # get the new wind vector
@@ -135,7 +136,6 @@ while sim_time < end_time:
     yaw_hold.append(mav.true_state.psi)
 
     course_hold.append(mav.true_state.chi)
-    course_hold_test.append(mav.true_state.chi)
     va_hold.append(mav.true_state.Va)
     altitude_hold.append(mav.true_state.altitude)
 
@@ -151,7 +151,7 @@ fig, axs = plt.subplots(1, 3, constrained_layout=True, figsize=(15,5))
 
 axs[0].plot(course_hold)
 axs[0].plot(course_hold_test)
-axs[0].plot(course_command_plot)
+# axs[0].plot(course_command_plot)
 axs[0].set_xlabel('Time (s)')
 axs[0].set_ylabel('course hold')
 
@@ -163,7 +163,7 @@ axs[0].set_ylabel('course hold')
 
 axs[1].plot(va_hold)
 axs[1].plot(va_hold_test)
-axs[1].plot(va_command_plot)
+# axs[1].plot(va_command_plot)
 axs[1].set_xlabel('Time (s)')
 axs[1].set_ylabel('va hold')
 
@@ -182,7 +182,7 @@ axs[1].set_ylabel('va hold')
 
 axs[2].plot(altitude_hold)
 axs[2].plot(altitude_hold_test)
-axs[2].plot(altitude_command_plot)
+# axs[2].plot(altitude_command_plot)
 axs[2].set_xlabel('Time (s)')
 axs[2].set_ylabel('altitude hold')
 

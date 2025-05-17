@@ -7,6 +7,15 @@ from message_types.msg_delta import MsgDelta
 import parameters.simulation_parameters as SIM
 from models.trim import compute_trim
 from tools.rotations import euler_to_quaternion
+from tools.rotations import quaternion_to_euler
+from tools.signals import Signals
+from models.mav_dynamics_sensors import MavDynamics
+from models.wind_simulation import WindSimulation
+from controllers.autopilot import Autopilot
+from models.compute_models import compute_model
+# from controllers.autopilot_lqr import Autopilot
+from estimators.observer import Observer
+import time
 
 wind = WindSimulation(SIM.ts_simulation)
 mav = MavDynamics(SIM.ts_simulation)
@@ -27,20 +36,23 @@ e3 = e.item(3)
 
 
 mav._state = np.array([[0], [0], [-10], [25], [0], [0], [e0], [e1], [e2], [e3], [0], [0], [0], [0], [0]])
-delta = MsgDelta()
+# delta = MsgDelta()
 
 sim_time = SIM.start_time
 end_time = 60 
 
-# with trim
-# delta_e_trim = delta.elevator
-# delta_a_trim = delta.aileron
-# delta_r_trim = delta.rudder
+trim_state_in, trim_input_in = compute_trim(mav, 25, 0)
+compute_model(mav, trim_state_in, trim_input_in)
 
-# no input
-delta.elevator = 0
-delta.aileron = 0
-delta.rudder = 0
+# with trim
+delta_e_trim = trim_input_in.elevator
+delta_a_trim = trim_input_in.aileron
+delta_r_trim = trim_input_in.rudder
+
+# # no input
+# delta.elevator = 0
+# delta.aileron = 0
+# delta.rudder = 0
 
 pnorth_hist = [mav._state[0]]
 peast_hist = [mav._state[1]]
@@ -49,7 +61,7 @@ time = [sim_time]
 
 while sim_time < end_time:
     current_wind = wind.update()
-    mav.update(delta, current_wind)
+    mav.update(trim_input_in, current_wind)
 
     pnorth_hist.append(mav._state.item(0))
     peast_hist.append(mav._state.item(1))

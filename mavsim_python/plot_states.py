@@ -7,6 +7,15 @@ from message_types.msg_delta import MsgDelta
 import parameters.simulation_parameters as SIM
 from models.trim import compute_trim
 from tools.rotations import euler_to_quaternion
+from tools.rotations import quaternion_to_euler
+from tools.signals import Signals
+from models.mav_dynamics_sensors import MavDynamics
+from models.wind_simulation import WindSimulation
+from controllers.autopilot import Autopilot
+from models.compute_models import compute_model
+# from controllers.autopilot_lqr import Autopilot
+from estimators.observer import Observer
+import time
 
 wind = WindSimulation(SIM.ts_simulation)
 mav = MavDynamics(SIM.ts_simulation)
@@ -27,20 +36,23 @@ e3 = e.item(3)
 
 
 mav._state = np.array([[0], [0], [-10], [25], [0], [0], [e0], [e1], [e2], [e3], [0], [0], [0], [0], [0]])
-delta = MsgDelta()
+# delta = MsgDelta()
 
 sim_time = SIM.start_time
 end_time = 60 
 
-# with trim
-# delta_e_trim = delta.elevator
-# delta_a_trim = delta.aileron
-# delta_r_trim = delta.rudder
+trim_state_in, trim_input_in = compute_trim(mav, 25, 0)
+compute_model(mav, trim_state_in, trim_input_in)
 
-# no input
-delta.elevator = 0
-delta.aileron = 0
-delta.rudder = 0
+# with trim
+delta_e_trim = trim_input_in.elevator
+delta_a_trim = trim_input_in.aileron
+delta_r_trim = trim_input_in.rudder
+
+# # no input
+# delta.elevator = 0
+# delta.aileron = 0
+# delta.rudder = 0
 
 pnorth_hist = [mav._state[0]]
 peast_hist = [mav._state[1]]
@@ -49,7 +61,7 @@ time = [sim_time]
 
 while sim_time < end_time:
     current_wind = wind.update()
-    mav.update(delta, current_wind)
+    mav.update(trim_input_in, current_wind)
 
     pnorth_hist.append(mav._state.item(0))
     peast_hist.append(mav._state.item(1))
@@ -58,21 +70,21 @@ while sim_time < end_time:
     sim_time += SIM.ts_simulation
     time.append(sim_time)
 
-# fig, axs = plt.subplots(1, 3, constrained_layout=True, figsize=(15,5)) 
-# axs[0].plot(time[2:], pnorth_hist[2:])
-# axs[0].set_xlabel('Time (s)')
-# axs[0].set_ylabel('pn')
+fig, axs = plt.subplots(1, 3, constrained_layout=True, figsize=(15,5)) 
+axs[0].plot(time[2:], pnorth_hist[2:])
+axs[0].set_xlabel('Time (s)')
+axs[0].set_ylabel('pn')
 
-# axs[1].plot(time[2:], peast_hist[2:])
-# axs[1].set_xlabel('Time (s)')
-# axs[1].set_ylabel('pe')
+axs[1].plot(time[2:], peast_hist[2:])
+axs[1].set_xlabel('Time (s)')
+axs[1].set_ylabel('pe')
 
-# axs[2].plot(time[2:], pdown_hist[2:])
-# axs[2].set_xlabel('Time (s)')
-# axs[2].set_ylabel('pd')
+axs[2].plot(time[2:], pdown_hist[2:])
+axs[2].set_xlabel('Time (s)')
+axs[2].set_ylabel('pd')
 
-# fig.suptitle('Position graphs', fontsize=16)
-# plt.show()
+fig.suptitle('Position graphs', fontsize=16)
+plt.show()
 
 plt.figure()
 ax = plt.axes(projection='3d')
