@@ -9,7 +9,7 @@ observer
 import numpy as np
 import parameters.control_parameters as CTRL
 import parameters.sensor_parameters as SENSOR
-import parameters.aerosonde_parameters as MAV
+import parameters.penguinb_parameters as MAV
 from tools.wrap import wrap
 from message_types.msg_state import MsgState
 from message_types.msg_sensors import MsgSensors

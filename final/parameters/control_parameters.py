@@ -4,7 +4,7 @@ import os, sys
 from pathlib import Path
 sys.path.insert(0,os.fspath(Path(__file__).parents[1]))
 import models.model_coef as TF
-import parameters.aerosonde_parameters as MAV
+import parameters.penguinb_parameters as MAV
 
 
 #### TODO #####

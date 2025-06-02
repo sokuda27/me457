@@ -16,7 +16,7 @@ from message_types.msg_sensors import MsgSensors
 from message_types.msg_delta import MsgDelta
 import parameters.camera_parameters as CAM
 
-import parameters.aerosonde_parameters as MAV
+import parameters.penguinb_parameters as MAV
 import parameters.sensor_parameters as SENSOR
 from tools.rotations import Quaternion2Rotation, Quaternion2Euler, Euler2Rotation
 

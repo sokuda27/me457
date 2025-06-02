@@ -6,7 +6,7 @@ autopilot block for mavsim_python - Total Energy Control System
 """
 import numpy as np
 import parameters.control_parameters as AP
-import parameters.aerosonde_parameters as MAV
+import parameters.penguinb_parameters as MAV
 from tools.transfer_function import TransferFunction
 from tools.wrap import wrap
 from controllers.pi_control import PIControl
